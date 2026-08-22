@@ -3,160 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Limpieza - AE</title>
+    <title>Limpieza AE - Victoria & Ramón</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; }
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; }
-        .login-card { background: white; padding: 2rem; border-radius: 15px; color: #333; width: 95%; max-width: 400px; text-align: center; }
-        .main-app { display: none; padding: 15px; }
-        .table-responsive { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 10px; margin-top: 15px; }
-        th { background-color: var(--primary) !important; color: white; text-align: center; font-size: 0.8rem; }
-        .sector-name { font-weight: bold; font-size: 0.8rem; min-width: 120px; background: #f8f9fa; }
-        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 44px; height: 44px; border: 1.5px solid var(--primary); border-radius: 4px; }
-        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; border: 0.5px solid #eee; cursor: pointer; height: 21px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.85rem; }
+        
+        /* Login */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; padding: 2rem; border-radius: 15px; width: 95%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        
+        /* Layout */
+        .main-app { display: none; }
+        .table-responsive { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 10px; }
+        
+        /* Matriz Interactiva */
+        th { background-color: var(--primary) !important; color: white; text-align: center; }
+        .sector-name { font-weight: bold; cursor: pointer; min-width: 140px; background: #f8f9fa; border-left: 5px solid transparent; }
+        .row-selected { background-color: #e3f2fd !important; border-left-color: #0d6efd !important; }
+
+        /* Cuadrado de 4 partes */
+        .task-container { display: inline-block; position: relative; margin-top: 15px; }
+        .operarios-num {
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            font-weight: bold; font-size: 11px; color: #d35400; background: #fff; 
+            border: 1px solid #d35400; border-radius: 50%; width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 48px; height: 48px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
+        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 0.5px solid #eee; background: white; cursor: pointer; height: 23px; }
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
-        .status-msg { font-size: 0.7rem; margin-top: 10px; color: #666; }
+
+        /* Stats */
+        .stats-panel { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-top: 4px solid var(--accent); }
+        .percent-val { font-size: 1.1rem; color: var(--accent); font-weight: bold; }
+        .footer-credits { font-size: 0.7rem; color: #95a5a6; margin: 20px 0; text-align: center; }
     </style>
 </head>
 <body>
 
-<!-- Pantalla de Login -->
 <div id="login-screen">
-    <div class="login-card shadow">
-        <h4 class="mb-4 fw-bold">Limpieza AE</h4>
-        <div class="text-start mb-3">
-            <label class="small fw-bold">Supervisor</label>
+    <div class="login-card">
+        <h4 class="text-center mb-4 fw-bold text-primary">Control de Rutina</h4>
+        <div class="mb-3">
+            <label class="small fw-bold">Supervisor:</label>
             <select id="user-input" class="form-select">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
             </select>
         </div>
-        <div class="text-start mb-3">
-            <label class="small fw-bold">Contraseña</label>
-            <input type="password" id="pass-input" class="form-control" placeholder="••••••••">
+        <div class="mb-3">
+            <label class="small fw-bold">Contraseña:</label>
+            <input type="password" id="pass-input" class="form-control" placeholder="vicky123 o moncho123">
         </div>
-        
-        <button id="google-auth-btn" class="btn btn-outline-danger w-100 mb-3 btn-sm">
-            1. Vincular Google Drive
-        </button>
-        
-        <button class="btn btn-primary w-100" onclick="attemptLogin()">
-            2. Entrar al Sistema
-        </button>
-        
-        <div id="debug-status" class="status-msg">Esperando conexión...</div>
+        <button class="btn btn-primary w-100 mb-2" onclick="attemptLogin()">Entrar al Sistema</button>
+        <button id="google-btn" class="btn btn-outline-danger btn-sm w-100" onclick="connectGoogle()">Vincular Google Drive (Opcional)</button>
+        <p id="error-msg" class="text-danger small mt-2 text-center d-none">Contraseña incorrecta</p>
     </div>
 </div>
 
-<!-- App Principal -->
 <div class="main-app" id="app">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="m-0">Supervisor: <b id="display-user"></b></h6>
-        <button class="btn btn-dark btn-sm" onclick="logout()">Cerrar</button>
-    </div>
-    
-    <div id="sync-info" class="alert alert-info py-1 small text-center">Drive: No sincronizado</div>
+    <nav class="navbar navbar-dark bg-dark px-3 shadow">
+        <span class="navbar-brand mb-0 h1 small">AE - Limpieza</span>
+        <button class="btn btn-outline-light btn-sm" onclick="logout()">Salir</button>
+    </nav>
 
-    <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead><tr id="table-head"><th>Sector</th></tr></thead>
-            <tbody id="table-body"></tbody>
-        </table>
+    <div class="container-fluid py-3">
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="small fw-bold">Supervisor activo:</label>
+                <select id="view-user" class="form-select form-select-sm" onchange="renderTable()">
+                    <option value="Tello Victoria">Tello Victoria</option>
+                    <option value="Torres Ramón">Torres Ramón</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="small fw-bold">Fecha:</label>
+                <input type="date" id="current-date" class="form-control form-control-sm" onchange="renderTable()">
+            </div>
+        </div>
+
+        <!-- Panel de Cumplimiento -->
+        <div class="stats-panel row text-center g-0 shadow-sm">
+            <div class="col-6 border-end">
+                <div class="small fw-bold">SEMANAL: <span id="p-sem" class="percent-val">0%</span></div>
+                <div class="extra-small" style="font-size: 0.6rem;">A:<span id="p-sem-a">0</span> B:<span id="p-sem-b">0</span> C:<span id="p-sem-c">0</span> D:<span id="p-sem-d">0</span></div>
+            </div>
+            <div class="col-6">
+                <div class="small fw-bold">MENSUAL: <span id="p-mes" class="percent-val">0%</span></div>
+                <div class="extra-small" style="font-size: 0.6rem;">A:<span id="p-mes-a">0</span> B:<span id="p-mes-b">0</span> C:<span id="p-mes-c">0</span> D:<span id="p-mes-d">0</span></div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2">
+            <button class="btn btn-success btn-sm" onclick="exportExcel()">Excel</button>
+            <button class="btn btn-danger btn-sm" onclick="exportPDF()">PDF</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr id="table-head"><th>Sector</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+        <div class="footer-credits">Desarrollado por Victoria Tello y Ramón Torres</div>
     </div>
 </div>
 
-<!-- Librerías de Google -->
-<script src="https://accounts.google.com/gsi/client"></script>
-<script src="https://apis.google.com/js/api.js"></script>
+<!-- Scripts Externos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-
-    const sectores = ["ALMA", "ALFA", "ALDE", "TAEL", "TACE", "SIDER", "BOMB", "MAES CH", "RECU", "RECI", "COFI", "SETU", "FACU", "LAEL", "LABO", "PUSI", "PERIM"];
+    const sectoresArr = ["ALMA", "ALFA", "ALDE", "TAEL", "TACE", "SIDER", "BOMB", "MAES CH", "RECU", "RECI", "COFI", "SETU", "FACU", "LAEL", "LABO", "PUSI", "PERIM"];
     const credenciales = { "Tello Victoria": "vicky123", "Torres Ramón": "moncho123" };
     
+    let db = JSON.parse(localStorage.getItem('db_ae')) || {};
+    let activeUser = localStorage.getItem('sessionUser');
     let tokenClient;
-    let accessToken = null;
-    let activeUser = localStorage.getItem('activeUser');
-    let db = JSON.parse(localStorage.getItem('db_limpieza')) || {};
 
-    // --- INICIALIZACIÓN GOOGLE ---
-    window.onload = function() {
-        try {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: (tokenResponse) => {
-                    if (tokenResponse.access_token) {
-                        accessToken = tokenResponse.access_token;
-                        document.getElementById('debug-status').innerText = "✅ Google Vinculado";
-                        document.getElementById('google-auth-btn').className = "btn btn-success w-100 mb-3 btn-sm";
-                    }
-                },
-            });
-            document.getElementById('debug-status').innerText = "Librerías listas. Vincule su cuenta.";
-        } catch (e) {
-            document.getElementById('debug-status').innerText = "❌ Error cargando Google. Revise Client ID.";
-        }
-        
-        if(activeUser) initApp();
-    };
-
-    document.getElementById('google-auth-btn').onclick = () => tokenClient.requestAccessToken();
-
-    // --- LÓGICA DE ACCESO ---
+    // --- ACCESO ---
     function attemptLogin() {
         const u = document.getElementById('user-input').value;
         const p = document.getElementById('pass-input').value;
-        
         if (credenciales[u] === p) {
             activeUser = u;
-            localStorage.setItem('activeUser', u);
-            initApp();
+            localStorage.setItem('sessionUser', u);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('view-user').value = u;
+            renderTable();
         } else {
-            alert("Contraseña incorrecta");
+            document.getElementById('error-msg').classList.remove('d-none');
         }
     }
 
-    function initApp() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('display-user').innerText = activeUser;
-        renderTable();
+    function logout() {
+        localStorage.removeItem('sessionUser');
+        location.reload();
     }
 
+    // --- GOOGLE DRIVE (PROTEGIDO CONTRA CONGELAMIENTO) ---
+    function connectGoogle() {
+        try {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                callback: (resp) => { 
+                    alert("Google Drive conectado con éxito."); 
+                    document.getElementById('google-btn').innerText = "✅ Drive Conectado";
+                },
+            });
+            tokenClient.requestAccessToken();
+        } catch (e) {
+            alert("Error al conectar con Google. Verifique la conexión o el ID de cliente.");
+        }
+    }
+
+    // --- MATRIZ ---
     function renderTable() {
         const head = document.getElementById('table-head');
         const body = document.getElementById('table-body');
-        const dias = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+        const baseDate = new Date(document.getElementById('current-date').value || new Date());
         
+        // Ajustar a Lunes
+        const day = baseDate.getDay();
+        const diff = baseDate.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(baseDate.setDate(diff));
+        document.getElementById('current-date').valueAsDate = monday;
+
         head.innerHTML = '<th>Sector</th>';
-        dias.forEach(d => head.innerHTML += `<th>${d}</th>`);
+        for(let i=0; i<7; i++){
+            let d = new Date(monday); d.setDate(d.getDate() + i);
+            head.innerHTML += `<th class="small">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][i]}<br>${d.getDate()}/${d.getMonth()+1}</th>`;
+        }
 
         body.innerHTML = '';
-        sectores.forEach(sec => {
-            let row = `<tr><td class="sector-name">${sec}</td>`;
-            for(let i=0; i<7; i++) {
-                row += `<td><div class="task-grid">
-                    <div class="task-cell" onclick="this.classList.toggle('task-ok')">A</div>
-                    <div class="task-cell" onclick="this.classList.toggle('task-ok')">B</div>
-                    <div class="task-cell" onclick="this.classList.toggle('task-ok')">C</div>
-                    <div class="task-cell" onclick="this.classList.toggle('task-ok')">D</div>
-                </div></td>`;
-            }
-            body.innerHTML += row + '</tr>';
-        });
-    }
-
-    function logout() {
-        localStorage.removeItem('activeUser');
-        location.reload();
-    }
-</script>
-
-</body>
-</html>
+        sectoresArr.forEach(sec => {
+            let row = `<tr><td class="sector-name" onclick="selectRow(this)">${sec}</td>`;
+            for(let i=0; i<7; i++){
+                let d = new Date(monday); d.setDate(d.getDate() + i);
+                let fKey = `${sec}_${d.toISOString().split('T')[0]}_${document.getElementById('view-user').value}`;
+                let data = db[fKey] || { op: 0, A: null, B: null, C: null, D: null };
+                
+                row += `<td>
+                    <div class="task-container">
+                        <div class="operarios-num" onclick="toggleOp('${fKey}')">${data.op}</div>
+                        <div class="task-grid">
+                            <div class="task-cell ${getTaskClass(data.A)}" onclick="toggleTask('${fKey}','A')">A</div>
+                            <div class="task-cell ${getTaskClass(data.B)}" onclick="toggleTask('${fKey}','B')">B</div>
+                            <div class="task-cell ${getTaskClass(data.C)}" onclick="toggleTask('${fKey}','C')">C</div>
+                            <div class="task-cell ${getTaskClass(data.D)}" onclick="toggleTask('${fKey}','D')">D</div>
