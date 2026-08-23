@@ -3,117 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Sistema de Gestión</title>
+    <title>Rutina AE - Gestión de Limpieza</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.85rem; }
-        
-        /* Título Principal */
-        .app-title { font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+        :root { 
+            --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
+            --light-bg: #f8f9fa; --g-blue: #4285F4; --g-red: #EA4335; --g-yellow: #FBBC04; --g-green: #34A853;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.82rem; }
+        .app-title-header { font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; margin: 0; padding: 10px 5px; background-color: var(--primary); }
+        .login-title { font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 20px; font-size: 1.1rem; }
 
         /* Login */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 15px; width: 95%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
         .main-app { display: none; }
 
-        /* Estadísticas Columnas Verticales */
+        /* Semáforo */
+        .pct-low { color: var(--fail) !important; }
+        .pct-high { color: var(--ok) !important; }
+
+        /* Stats */
         .stats-card { background: white; border-radius: 10px; padding: 12px; margin-bottom: 12px; border-top: 4px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .stats-title { font-size: 0.75rem; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .percent-val { font-size: 1.1rem; color: var(--accent); font-weight: bold; display: block; }
-        .col-stat { border-right: 1px solid #f0f0f0; padding: 5px 2px; }
-        .col-stat:last-child { border-right: none; }
-        .stat-label { font-size: 0.7rem; font-weight: bold; color: #34495e; display: block; }
-        .stat-num { font-size: 0.85rem; font-weight: bold; color: #2c3e50; }
+        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; }
+        .percent-val { font-size: 1.1rem; font-weight: bold; }
+        .stat-row { display: flex; justify-content: space-between; padding: 2px 10px; border-bottom: 1px solid #f9f9f9; }
 
-        /* Matriz */
+        /* Tabla - Sector al 40% (78px) */
         .table-responsive { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        th { background-color: var(--primary) !important; color: white; text-align: center; font-size: 0.7rem; vertical-align: middle; }
-        .sector-name { font-weight: bold; cursor: pointer; min-width: 140px; background: #f8f9fa; border-left: 5px solid transparent; text-align: left; padding-left: 10px !important; }
-        .selected-row { border-left-color: var(--accent) !important; background-color: #e3f2fd !important; }
-
-        /* Tareas Interactiva */
-        .task-container { display: inline-block; position: relative; margin-top: 15px; }
-        .operarios-num {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            font-weight: bold; font-size: 11px; color: #e67e22; background: #fff;
-            border: 1px solid #e67e22; border-radius: 50%; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;
+        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.58rem; vertical-align: middle; border: 1px solid #dee2e6 !important; font-weight: bold; padding: 6px 1px !important; }
+        .sector-name { 
+            font-weight: 700; cursor: pointer; width: 78px !important; min-width: 78px !important; max-width: 78px !important;
+            background: #f8f9fa; border-left: 4px solid transparent; text-align: left; padding: 6px 4px !important; 
+            color: var(--primary); font-size: 0.70rem; word-wrap: break-word; line-height: 1.1;
         }
-        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 48px; height: 48px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
-        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 0.5px solid #ddd; background: white; cursor: pointer; height: 23px; user-select: none; }
+        .sector-perc-label { font-size: 0.52rem; color: #7f8c8d; font-weight: normal; display: block; margin-top: 2px; line-height: 1; }
+        
+        .summary-col { background-color: #f1f8ff !important; font-weight: bold; color: #0366d6; width: 38px; border: 1px solid #dee2e6 !important; }
+        .op-col { background-color: #fff3e0 !important; font-weight: bold; color: #e67e22; width: 38px; border: 1px solid #dee2e6 !important; }
+        .op-mes-col { background-color: #fff8e1 !important; font-weight: bold; color: #ffa000; width: 38px; border: 1px solid #dee2e6 !important; }
+
+        /* Tareas */
+        .task-container { display: inline-block; position: relative; margin-top: 15px; }
+        .operarios-num { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 11px; color: #e67e22; background: #fff; border: 1px solid #e67e22; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; }
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 44px; height: 44px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; background: #fff; }
+        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; border: 0.5px solid #ddd; background: white; cursor: pointer; height: 21px; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
-        .sync-status { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+        .btn-google-drive { background: white !important; border: 2px solid transparent !important; border-image: linear-gradient(to bottom right, var(--g-blue), var(--g-green), var(--g-yellow), var(--g-red)) 1 !important; color: #5f6368 !important; font-weight: 700; font-size: 0.6rem; padding: 2px 6px; display: flex; align-items: center; gap: 4px; margin-right: 10px; }
+        .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
+        .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
-<!-- Pantalla de Login -->
+<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card">
-        <h3 class="app-title">Control de Rutina de Limpieza - AE</h3>
-        <div class="text-start mb-4">
-            <label class="small fw-bold">Seleccionar Supervisor:</label>
-            <select id="user-input" class="form-select form-select-lg">
+        <h3 class="login-title">Control de cumplimiento de rutina de limpieza AE</h3>
+        <div class="text-start mb-3">
+            <label class="small fw-bold">Usuario:</label>
+            <select id="user-input" class="form-select">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
             </select>
         </div>
-        <button id="google-btn" class="btn btn-outline-danger w-100 mb-3 btn-sm" onclick="vincularGoogle()">Vincular Google Drive</button>
-        <button class="btn btn-primary btn-lg w-100 shadow" onclick="manejarLogin()">Iniciar</button>
+        <div class="text-start mb-4">
+            <label class="small fw-bold">Contraseña (Visible):</label>
+            <input type="text" id="pass-input" class="form-control" placeholder="Clave">
+        </div>
+        <button class="btn btn-primary w-100 shadow fw-bold" onclick="manejarLogin()">INICIAR</button>
+        <a onclick="recuperarClave()" class="small mt-3 d-block text-decoration-none" style="color: var(--accent); cursor:pointer;">¿Olvidaste tu contraseña?</a>
     </div>
 </div>
 
-<!-- Aplicación Principal -->
+<!-- APP -->
 <div class="main-app" id="app">
+    <div class="text-center app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
+    
     <nav class="navbar navbar-dark bg-dark px-3 shadow-sm no-print">
-        <span class="navbar-brand mb-0 h6 small">Supervisor: <b id="display-user-name"></b></span>
+        <span class="navbar-brand mb-0 h6 small">Supervisor: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center">
-            <span id="drive-badge" class="sync-status bg-secondary text-white me-2">Drive: Off</span>
+            <button id="google-btn" class="btn-google-drive" onclick="vincularGoogle()">
+                <svg width="12" height="12" viewBox="0 0 87.3 78"><path d="m6.6 66.85 15.4-26.65c.7-1.25 1.9-2 3.25-2.2l31.25-.35c1.35.2 2.55.95 3.25 2.2l15.4 26.65c.7 1.25.7 2.75 0 4l-15.4 26.7c-.7 1.25-1.9 2-3.25 2.2h-31.25c-1.35-.2-2.55-.95-3.25-2.2l-15.4-26.7c-.7-1.25-.7-2.75 0-4z" fill="#0066da"/><path d="m30.65 24.35 15.4-26.65c.7-1.25 1.9-2 3.25-2.2h31.25c1.35.2 2.55.95 3.25 2.2l15.4 26.65c.7 1.25.7 2.75 0 4l-15.4 26.7c-.7 1.25-1.9 2-3.25 2.2l-31.25.35c-1.35-.2-2.55-.95-3.25-2.2l-15.4-26.7c-.7-1.25-.7-2.75 0-4z" fill="#00ac47"/><path d="m.7 75.3 15.4-26.7c.7-1.25 1.9-2 3.25-2.2h31.25c1.35.2 2.55.95 3.25 2.2l15.4 26.7c.7 1.25.7 2.75 0 4l-15.4 26.65c-.7 1.25-1.9 2-3.25 2.2h-31.25c-1.35-.2-2.55-.95-3.25-2.2l-15.4-26.65c-.7-1.25-.7-2.75 0-4z" fill="#ffba00"/></svg>
+                ENLAZAR DRIVE
+            </button>
             <button class="btn btn-link text-white text-decoration-none btn-sm" onclick="location.reload()">Salir</button>
         </div>
     </nav>
 
     <div class="container-fluid py-3" id="app-content">
-        <h2 class="text-center app-title mb-4">Control de Cumplimiento y Rutina de Limpieza - AE</h2>
-
         <div class="row g-2">
-            <!-- Stats Semanal -->
-            <div class="col-md-6">
+            <div class="col-6">
                 <div class="stats-card">
                     <div class="stats-title text-center">Cumplimiento Semanal</div>
-                    <div class="row g-0 text-center">
-                        <div class="col col-stat"><span class="stat-label">Total</span><span id="ps-total" class="percent-val">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">A</span><span id="ps-a" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">B</span><span id="ps-b" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">C</span><span id="ps-c" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">D</span><span id="ps-d" class="stat-num">0%</span></div>
-                    </div>
+                    <div class="stat-row"><span class="small fw-bold">Total</span><span id="ps-total" class="percent-val">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">A</span><span id="ps-a">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">B</span><span id="ps-b">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">C</span><span id="ps-c">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">D</span><span id="ps-d">0%</span></div>
                 </div>
             </div>
-            <!-- Stats Mensual -->
-            <div class="col-md-6">
+            <div class="col-6">
                 <div class="stats-card">
                     <div class="stats-title text-center">Cumplimiento Mensual</div>
-                    <div class="row g-0 text-center">
-                        <div class="col col-stat"><span class="stat-label">Total</span><span id="pm-total" class="percent-val">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">A</span><span id="pm-a" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">B</span><span id="pm-b" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">C</span><span id="pm-c" class="stat-num">0%</span></div>
-                        <div class="col col-stat"><span class="stat-label">D</span><span id="pm-d" class="stat-num">0%</span></div>
-                    </div>
+                    <div class="stat-row"><span class="small fw-bold">Total</span><span id="pm-total" class="percent-val">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">A</span><span id="pm-a">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">B</span><span id="pm-b">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">C</span><span id="pm-c">0%</span></div>
+                    <div class="stat-row"><span class="small fw-bold">D</span><span id="pm-d">0%</span></div>
                 </div>
             </div>
         </div>
 
+        <div class="legend-card text-center no-print">
+            <span class="me-2 fw-bold" style="font-size: 0.7rem;">A:Pisos/Rec.</span>
+            <span class="me-2 fw-bold" style="font-size: 0.7rem;">B:Vidrios/Par.</span>
+            <span class="me-2 fw-bold" style="font-size: 0.7rem;">C:Bolseo/Segr.</span>
+            <span class="fw-bold" style="font-size: 0.7rem;">D:Hidro/Barr.</span>
+        </div>
+
         <div class="row g-2 mb-3 no-print">
-            <div class="col-6"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
-            <div class="col-6 d-flex gap-1">
-                <button class="btn btn-sm btn-success w-100" onclick="exportarExcel()">Excel</button>
-                <button class="btn btn-sm btn-danger w-100" onclick="exportarPDF()">PDF</button>
+            <div class="col-6">
+                <select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()">
+                    <option value="Tello Victoria">Tello Victoria</option>
+                    <option value="Torres Ramón">Torres Ramón</option>
+                </select>
+                <input type="date" id="data-date" class="form-control form-control-sm mt-1" onchange="renderMatriz()">
+            </div>
+            <div class="col-6 d-flex gap-1 align-items-end">
+                <button class="btn btn-sm btn-success w-100 fw-bold" onclick="exportarExcel()">EXCEL</button>
+                <button class="btn btn-sm btn-danger w-100 fw-bold" onclick="exportarPDF()">PDF</button>
             </div>
         </div>
 
@@ -123,11 +145,9 @@
                 <tbody id="matriz-body"></tbody>
             </table>
         </div>
-        <p class="text-center mt-3 text-muted" style="font-size: 10px;">Desarrollado por Victoria Tello y Ramón Torres</p>
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -135,130 +155,161 @@
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const sectores = ["ALMA", "ALFA", "ALDE", "TAEL", "TACE", "SIDER", "BOMB", "MAES CH", "RECU", "RECI", "COFI", "SETU", "FACU", "LAEL", "LABO", "PUSI", "PERIM"];
+    const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
+    const creds = { "Tello Victoria": { pass: "victoria.ae", hint: "Torres" }, "Torres Ramón": { pass: "ramon.ae", hint: "Tello" } };
     
-    let db = JSON.parse(localStorage.getItem('db_rutina_v9')) || {};
-    let metas = JSON.parse(localStorage.getItem('metas_rutina_v9')) || {};
+    let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
+    let metas = JSON.parse(localStorage.getItem('metas_ae_vFinal')) || {};
     let activeUser = "";
     let tokenClient, accessToken = null, driveFileId = null;
 
     function manejarLogin() {
-        activeUser = document.getElementById('user-input').value;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('display-user-name').innerText = activeUser;
-        document.getElementById('data-date').valueAsDate = new Date();
-        renderMatriz();
+        const u = document.getElementById('user-input').value, p = document.getElementById('pass-input').value.trim();
+        if (creds[u].pass === p) {
+            activeUser = u;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('active-user-display').innerText = activeUser;
+            document.getElementById('view-user').value = activeUser;
+            document.getElementById('data-date').valueAsDate = new Date();
+            renderMatriz();
+        } else { alert("Contraseña Incorrecta"); }
     }
 
-    // Google Drive
+    function recuperarClave() {
+        const u = document.getElementById('user-input').value;
+        const r = prompt(`Recuperación: ¿Apellido de su compañero/a?`);
+        if (r && r.toLowerCase().trim() === creds[u].hint.toLowerCase()) alert(`Tu clave es: ${creds[u].pass}`);
+    }
+
     window.onload = () => {
         gapi.load('client', () => gapi.client.init({}));
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
-            callback: (resp) => {
-                accessToken = resp.access_token;
-                document.getElementById('drive-badge').className = "sync-status bg-success text-white me-2";
-                document.getElementById('drive-badge').innerText = "Drive: On";
-                syncDriveData();
-            },
+            callback: (resp) => { accessToken = resp.access_token; document.getElementById('google-btn').innerText = "✅ DRIVE OK"; syncDriveData(); },
         });
     };
     function vincularGoogle() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
     async function syncDriveData() {
-        const r = await fetch('https://www.googleapis.com/drive/v3/files?q=name="rutina_ae_v9.json" and trashed=false', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
+        const r = await fetch('https://www.googleapis.com/drive/v3/files?q=name="rutina_ae_vFinal.json" and trashed=false', { headers: { Authorization: `Bearer ${accessToken}` } });
         const d = await r.json();
         if (d.files && d.files.length > 0) {
             driveFileId = d.files[0].id;
-            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            const remote = await res.json();
-            db = remote.db || db; metas = remote.metas || metas;
-            renderMatriz();
+            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, { headers: { Authorization: `Bearer ${accessToken}` } });
+            db = await res.json(); renderMatriz();
         }
     }
 
     async function saveToDrive() {
         if (!accessToken) return;
-        const metadata = { name: 'rutina_ae_v9.json', mimeType: 'application/json' };
-        const content = JSON.stringify({ db, metas });
+        const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([content], { type: 'application/json' }));
-        const url = driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-        await fetch(url, { method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
+        form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
+        fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
+        });
     }
 
     function renderMatriz() {
-        const head = document.getElementById('matriz-head'), body = document.getElementById('matriz-body'), base = new Date(document.getElementById('data-date').value);
-        const lunes = new Date(base.setDate(base.getDate() - (base.getDay() === 0 ? 6 : base.getDay() - 1)));
-        head.innerHTML = `<tr><th>Sector</th>${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i) => {
-            let dt = new Date(lunes); dt.setDate(dt.getDate() + i);
-            return `<th>${d}<br><small>${dt.getDate()}/${dt.getMonth()+1}</small></th>`;
+        const head = document.getElementById('matriz-head'), body = document.getElementById('matriz-body');
+        const baseDate = new Date(document.getElementById('data-date').value);
+        const viewSup = document.getElementById('view-user').value;
+        const isReadonly = activeUser !== viewSup;
+        body.className = isReadonly ? 'readonly-mode' : '';
+
+        // DÍA 1 de la matriz = Fecha Seleccionada + 1 día
+        const startDate = new Date(baseDate);
+        startDate.setDate(baseDate.getDate() + 1);
+
+        head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-mes-col">Oper. Mes</th><th class="summary-col">V. Sem.</th><th class="op-col">Oper. Sem.</th>${[0,1,2,3,4,5,6].map(i => {
+            let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+            return `<th>${dt.getDate()}/${dt.getMonth()+1}</th>`;
         }).join('')}</tr>`;
+
         body.innerHTML = '';
         sectores.forEach(sec => {
-            let mS = metas[sec + '_' + activeUser]?.s || 0;
-            let row = `<tr><td class="sector-name" onclick="clickSector('${sec}')">${sec}<br><small class="text-muted" style="font-size:8px">Meta: ${mS}v/sem</small></td>`;
-            for(let i=0; i<7; i++) {
-                let dt = new Date(lunes); dt.setDate(dt.getDate() + i);
-                let k = `${sec}_${dt.toISOString().split('T')[0]}_${activeUser}`;
-                let d = db[k] || { op: 0, A: null, B: null, C: null, D: null };
-                row += `<td><div class="task-container"><div class="operarios-num" onclick="cambiarOp('${k}')">${d.op}</div><div class="task-grid">
-                ${['A','B','C','D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="cambiarT('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
+            let sumOpWeek = 0, countVisitsWeek = 0, sumOpMonth = 0, countVisitsMonth = 0, okWeek = 0, okMonth = 0, dayCells = "";
+            
+            // 30 días desde startDate
+            for(let j=0; j<30; j++){
+                let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
+                let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
+                let vM = db[kM];
+                if(vM){
+                    sumOpMonth += (parseInt(vM.op) || 0);
+                    if(vM.op > 0 || vM.A !== null || vM.B !== null || vM.C !== null || vM.D !== null) countVisitsMonth++;
+                    ['A','B','C','D'].forEach(t => { if(vM[t]===true) okMonth++; });
+                }
             }
-            body.innerHTML += row + '</tr>';
+
+            // 7 días desde startDate
+            for(let i=0; i<7; i++) {
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+                let fKey = dt.toISOString().split('T')[0];
+                let k = `${sec}_${fKey}_${viewSup}`;
+                let d = db[k] || { op: 0, A: null, B: null, C: null, D: null };
+                
+                sumOpWeek += (parseInt(d.op) || 0);
+                if(d.op > 0 || d.A !== null || d.B !== null || d.C !== null || d.D !== null) countVisitsWeek++;
+                ['A','B','C','D'].forEach(t => { if(d[t]===true) okWeek++; });
+
+                dayCells += `<td><div class="task-container"><div class="operarios-num" onclick="toggleOp('${k}')">${d.op}</div><div class="task-grid">
+                ${['A','B','C','D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
+            }
+
+            let pS = Math.round((okWeek / 28) * 100), pM = Math.round((okMonth / 120) * 100);
+            body.innerHTML += `<tr>
+                <td class="sector-name">${sec}<span class="sector-perc-label">Sem: <span class="sector-perc-val ${pS < 60 ? 'pct-low' : 'pct-high'}">${pS}%</span></span><span class="sector-perc-label">Mes: <span class="sector-perc-val ${pM < 60 ? 'pct-low' : 'pct-high'}" style="color:var(--accent)">${pM}%</span></span></td>
+                <td class="summary-col">${countVisitsMonth}</td><td class="op-mes-col">${sumOpMonth}</td><td class="summary-col">${countVisitsWeek}</td><td class="op-col">${sumOpWeek}</td>${dayCells}
+            </tr>`;
         });
-        updateStats();
+        updateStats(startDate);
     }
 
-    function clickSector(sec) {
-        let visitas = 0, semanas = new Set();
-        Object.keys(db).forEach(k => { if(k.startsWith(sec) && k.endsWith(activeUser)) { visitas++; semanas.add(k.split('_')[1].substring(0,7)); } });
-        let prom = semanas.size ? (visitas / semanas.size).toFixed(1) : 0;
-        let ns = prompt(`${sec}\nPromedio Real: ${prom} v/sem\nEstablecer Meta Semanal:`, metas[sec+'_'+activeUser]?.s || 0);
-        if(ns !== null) { metas[sec+'_'+activeUser] = { s: parseInt(ns) || 0 }; save(); }
-    }
+    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(); }
+    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id].op) + 1) % 5; save(); }
+    function save() { localStorage.setItem('db_ae_vFinal', JSON.stringify(db)); renderMatriz(); saveToDrive(); }
 
-    function cambiarT(k, t) { if(!db[k]) db[k] = { op: 0, A: null, B: null, C: null, D: null }; db[k][t] = (db[k][t] === null) ? true : (db[k][t] === true ? false : null); save(); }
-    function cambiarOp(k) { if(!db[k]) db[k] = { op: 0, A: null, B: null, C: null, D: null }; db[k].op = (db[k].op + 1) % 5; save(); }
-    function save() { localStorage.setItem('db_rutina_v9', JSON.stringify(db)); localStorage.setItem('metas_rutina_v9', JSON.stringify(metas)); renderMatriz(); saveToDrive(); }
+    function updateStats(startDate) {
+        const viewSup = document.getElementById('view-user').value;
+        let s = { ok:0, A:0, B:0, C:0, D:0 }, m = { ok:0, A:0, B:0, C:0, D:0 };
+        const totalPosSem = sectores.length * 7, totalPosMes = sectores.length * 30;
 
-    function updateStats() {
-        const base = new Date(document.getElementById('data-date').value);
-        const mAct = base.getMonth(), aAct = base.getFullYear();
-        let s = { ok:0, tot:0, A:0, At:0, B:0, Bt:0, C:0, Ct:0, D:0, Dt:0 }, m = { ok:0, tot:0, A:0, At:0, B:0, Bt:0, C:0, Ct:0, D:0, Dt:0 };
-        const f = (a, b) => b === 0 ? "0%" : Math.round((a/b)*100) + "%";
-        Object.keys(db).forEach(k => {
-            if(!k.endsWith(activeUser)) return;
-            let d = new Date(k.split('_')[1]), item = db[k], isSem = (d >= base && d <= new Date(new Date(base).setDate(base.getDate()+6))), isMes = (d.getMonth() === mAct && d.getFullYear() === aAct);
-            ['A','B','C','D'].forEach(t => { if(item[t] !== null) { if(isSem) { s.tot++; s[t+'t']++; if(item[t]) { s.ok++; s[t]++; } } if(isMes) { m.tot++; m[t+'t']++; if(item[t]) { m.ok++; m[t]++; } } } });
+        sectores.forEach(sec => {
+            for(let i=0; i<7; i++){
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
+                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { s.ok++; s[t]++; } });
+            }
+            for(let j=0; j<30; j++){
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
+                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
+                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { m.ok++; m[t]++; } });
+            }
         });
-        document.getElementById('ps-total').innerText = f(s.ok, s.tot); document.getElementById('ps-a').innerText = f(s.A, s.At); document.getElementById('ps-b').innerText = f(s.B, s.Bt); document.getElementById('ps-c').innerText = f(s.C, s.Ct); document.getElementById('ps-d').innerText = f(s.D, s.Dt);
-        document.getElementById('pm-total').innerText = f(m.ok, m.tot); document.getElementById('pm-a').innerText = f(m.A, m.At); document.getElementById('pm-b').innerText = f(m.B, m.Bt); document.getElementById('pm-c').innerText = f(m.C, m.Ct); document.getElementById('pm-d').innerText = f(m.D, m.Dt);
+
+        const setUI = (id, ok, total) => {
+            const pct = total === 0 ? 0 : Math.round((ok/total)*100);
+            const el = document.getElementById(id);
+            el.innerText = pct + "%";
+            el.className = pct < 60 ? (id.includes('total') ? 'percent-val pct-low' : 'pct-low') : (id.includes('total') ? 'percent-val pct-high' : 'pct-high');
+        };
+
+        setUI('ps-total', s.ok, totalPosSem * 4);
+        ['A','B','C','D'].forEach(t => setUI('ps-'+t.toLowerCase(), s[t], totalPosSem));
+        setUI('pm-total', m.ok, totalPosMes * 4);
+        ['A','B','C','D'].forEach(t => setUI('pm-'+t.toLowerCase(), m[t], totalPosMes));
     }
 
     function exportarExcel() {
-        let rows = [["Sector", "Fecha", "Supervisor", "Tarea A", "Tarea B", "Tarea C", "Tarea D", "Operarios"]];
-        Object.keys(db).forEach(k => {
-            let p = k.split('_');
-            rows.push([p[0], p[1], p[2], db[k].A?'OK':'F', db[k].B?'OK':'F', db[k].C?'OK':'F', db[k].D?'OK':'F', db[k].op]);
-        });
-        let ws = XLSX.utils.aoa_to_sheet(rows);
-        let wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Rutina AE");
-        XLSX.writeFile(wb, `Reporte_AE_${activeUser}.xlsx`);
+        let rows = [["Sector", "Fecha", "Supervisor", "A", "B", "C", "D", "Operarios"]];
+        Object.keys(db).forEach(k => { let p = k.split('_'); rows.push([p[0], p[1], p[2], db[k].A?'OK':'F', db[k].B?'OK':'F', db[k].C?'OK':'F', db[k].D?'OK':'F', db[k].op]); });
+        XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet(rows), "Limpieza").window?.XLSX.writeFile("Rutina_AE.xlsx");
     }
 
-    function exportarPDF() {
-        const element = document.getElementById('app-content');
-        const opt = { margin: 0.1, filename: 'Rutina_AE.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } };
-        html2pdf().set(opt).from(element).save();
-    }
+    function exportarPDF() { html2pdf().set({ margin: 0.1, filename: 'Rutina_AE.pdf', jsPDF: { orientation: 'landscape' } }).from(document.getElementById('app-content')).save(); }
     setInterval(saveToDrive, 60000);
 </script>
 </body>
