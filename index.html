@@ -3,312 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Limpieza Pro - Seguridad</title>
+    <title>Rutina AE - Sistema de Gestión</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; font-size: 0.85rem; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.85rem; }
         
-        /* Login */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--primary); z-index: 9999; display: flex;
-            align-items: center; justify-content: center; color: white;
-        }
-        .login-card { background: white; padding: 2rem; border-radius: 12px; color: #333; width: 90%; max-width: 400px; }
-        
-        .main-app { display: none; }
-        .sync-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
-        
-        /* Matriz */
-        .table-responsive { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 10px; }
-        th { background-color: var(--primary) !important; color: white; text-align: center; }
-        .sector-name { font-weight: bold; cursor: pointer; min-width: 150px; background: #f8f9fa; border-left: 5px solid transparent; }
-        .row-selected { background-color: #e3f2fd !important; border-left-color: #0d6efd !important; }
-        .readonly-mode { opacity: 0.6; pointer-events: none; }
+        /* Título Principal */
+        .app-title { font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
 
-        /* Cuadrados Tareas */
+        /* Login */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 15px; width: 95%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
+        .main-app { display: none; }
+
+        /* Estadísticas Columnas Verticales */
+        .stats-card { background: white; border-radius: 10px; padding: 12px; margin-bottom: 12px; border-top: 4px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .stats-title { font-size: 0.75rem; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .percent-val { font-size: 1.1rem; color: var(--accent); font-weight: bold; display: block; }
+        .col-stat { border-right: 1px solid #f0f0f0; padding: 5px 2px; }
+        .col-stat:last-child { border-right: none; }
+        .stat-label { font-size: 0.7rem; font-weight: bold; color: #34495e; display: block; }
+        .stat-num { font-size: 0.85rem; font-weight: bold; color: #2c3e50; }
+
+        /* Matriz */
+        .table-responsive { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        th { background-color: var(--primary) !important; color: white; text-align: center; font-size: 0.7rem; vertical-align: middle; }
+        .sector-name { font-weight: bold; cursor: pointer; min-width: 140px; background: #f8f9fa; border-left: 5px solid transparent; text-align: left; padding-left: 10px !important; }
+        .selected-row { border-left-color: var(--accent) !important; background-color: #e3f2fd !important; }
+
+        /* Tareas Interactiva */
         .task-container { display: inline-block; position: relative; margin-top: 15px; }
         .operarios-num {
-            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-            font-weight: bold; font-size: 11px; color: #d35400; background: #fff; 
-            border: 1px solid #d35400; border-radius: 50%; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center; z-index: 5;
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            font-weight: bold; font-size: 11px; color: #e67e22; background: #fff;
+            border: 1px solid #e67e22; border-radius: 50%; width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;
         }
-        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 46px; height: 46px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
-        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 0.5px solid #eee; background: white; cursor: pointer;}
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 48px; height: 48px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
+        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 0.5px solid #ddd; background: white; cursor: pointer; height: 23px; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
-
-        .stats-panel { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-top: 4px solid var(--accent); }
-        .percent-val { font-size: 1.1rem; color: var(--accent); font-weight: bold; }
-        .footer-credits { font-size: 0.7rem; color: #95a5a6; margin: 20px 0; text-align: center; }
         
-        .recovery-link { font-size: 0.75rem; color: var(--accent); cursor: pointer; text-decoration: none; }
+        .sync-status { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
 <!-- Pantalla de Login -->
 <div id="login-screen">
-    <div class="login-card shadow">
-        <h4 class="text-center mb-4">Acceso al Sistema</h4>
-        <div class="mb-3">
-            <label class="small fw-bold">Supervisor</label>
-            <select id="user-input" class="form-select">
+    <div class="login-card">
+        <h3 class="app-title">Control de Rutina de Limpieza - AE</h3>
+        <div class="text-start mb-4">
+            <label class="small fw-bold">Seleccionar Supervisor:</label>
+            <select id="user-input" class="form-select form-select-lg">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
             </select>
         </div>
-        <div class="mb-2">
-            <label class="small fw-bold">Contraseña</label>
-            <input type="password" id="pass-input" class="form-control" placeholder="••••••••">
-        </div>
-        <div class="text-end mb-3">
-            <a onclick="recuperarClave()" class="recovery-link">¿Olvidaste tu contraseña?</a>
-        </div>
-        <hr>
-        <button id="google-auth-btn" class="btn btn-outline-dark w-100 mb-3 btn-sm">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="14" class="me-2"> Vincular con Google Drive
-        </button>
-        <button class="btn btn-primary w-100" onclick="attemptLogin()">Entrar al Panel</button>
-        <p id="login-err" class="text-danger small mt-2 text-center d-none">Error de credenciales</p>
+        <button id="google-btn" class="btn btn-outline-danger w-100 mb-3 btn-sm" onclick="vincularGoogle()">Vincular Google Drive</button>
+        <button class="btn btn-primary btn-lg w-100 shadow" onclick="manejarLogin()">Iniciar</button>
     </div>
 </div>
 
-<!-- App Principal -->
+<!-- Aplicación Principal -->
 <div class="main-app" id="app">
-    <div class="bg-dark text-white px-3 py-2 d-flex justify-content-between align-items-center">
-        <span class="small">Supervisor: <b id="display-user"></b></span>
-        <div>
-            <span id="sync-indicator" class="sync-status bg-secondary">Sin Sincronizar</span>
-            <button class="btn btn-link btn-sm text-white text-decoration-none ms-2" onclick="logout()">Salir</button>
+    <nav class="navbar navbar-dark bg-dark px-3 shadow-sm no-print">
+        <span class="navbar-brand mb-0 h6 small">Supervisor: <b id="display-user-name"></b></span>
+        <div class="d-flex align-items-center">
+            <span id="drive-badge" class="sync-status bg-secondary text-white me-2">Drive: Off</span>
+            <button class="btn btn-link text-white text-decoration-none btn-sm" onclick="location.reload()">Salir</button>
         </div>
-    </div>
+    </nav>
 
-    <div class="container-fluid" id="app-content">
-        <div class="d-flex justify-content-between align-items-center my-3">
-            <h5 class="fw-bold m-0 text-primary">CUMPLIMIENTO DE LIMPIEZA</h5>
-            <div class="no-print">
-                <button class="btn btn-sm btn-outline-danger" onclick="exportarPDF()">PDF</button>
-                <button class="btn btn-sm btn-outline-success" onclick="exportarExcel()">Excel</button>
-            </div>
-        </div>
+    <div class="container-fluid py-3" id="app-content">
+        <h2 class="text-center app-title mb-4">Control de Cumplimiento y Rutina de Limpieza - AE</h2>
 
-        <div class="row g-2 mb-3">
-            <div class="col-6">
-                <label class="small fw-bold">Ver Supervisor:</label>
-                <select id="view-user" class="form-select form-select-sm" onchange="switchView()">
-                    <option value="Tello Victoria">Tello Victoria</option>
-                    <option value="Torres Ramón">Torres Ramón</option>
-                </select>
-            </div>
-            <div class="col-6">
-                <label class="small fw-bold">Fecha de Inicio:</label>
-                <input type="date" id="current-date" class="form-control form-control-sm" onchange="renderTable()">
-            </div>
-        </div>
-
-        <div class="stats-panel text-center">
-            <div id="readonly-msg" class="text-danger small fw-bold mb-2 d-none">⚠️ MODO LECTURA</div>
-            <div class="row">
-                <div class="col-6 border-end">
-                    <div class="small fw-bold">Semanal: <span id="p-sem-total" class="percent-val">0.0</span>%</div>
-                    <div class="row g-1 mt-1 justify-content-center" style="font-size: 0.6rem;">
-                        <div class="col-3">A:<span id="p-sem-a">0</span>%</div>
-                        <div class="col-3">B:<span id="p-sem-b">0</span>%</div>
-                        <div class="col-3">C:<span id="p-sem-c">0</span>%</div>
-                        <div class="col-3">D:<span id="p-sem-d">0</span>%</div>
+        <div class="row g-2">
+            <!-- Stats Semanal -->
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <div class="stats-title text-center">Cumplimiento Semanal</div>
+                    <div class="row g-0 text-center">
+                        <div class="col col-stat"><span class="stat-label">Total</span><span id="ps-total" class="percent-val">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">A</span><span id="ps-a" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">B</span><span id="ps-b" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">C</span><span id="ps-c" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">D</span><span id="ps-d" class="stat-num">0%</span></div>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="small fw-bold">Mensual: <span id="p-mes-total" class="percent-val">0.0</span>%</div>
-                    <div class="row g-1 mt-1 justify-content-center" style="font-size: 0.6rem;">
-                        <div class="col-3">A:<span id="p-mes-a">0</span>%</div>
-                        <div class="col-3">B:<span id="p-mes-b">0</span>%</div>
-                        <div class="col-3">C:<span id="p-mes-c">0</span>%</div>
-                        <div class="col-3">D:<span id="p-mes-d">0</span>%</div>
+            </div>
+            <!-- Stats Mensual -->
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <div class="stats-title text-center">Cumplimiento Mensual</div>
+                    <div class="row g-0 text-center">
+                        <div class="col col-stat"><span class="stat-label">Total</span><span id="pm-total" class="percent-val">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">A</span><span id="pm-a" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">B</span><span id="pm-b" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">C</span><span id="pm-c" class="stat-num">0%</span></div>
+                        <div class="col col-stat"><span class="stat-label">D</span><span id="pm-d" class="stat-num">0%</span></div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-3 no-print">
+            <div class="col-6"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
+            <div class="col-6 d-flex gap-1">
+                <button class="btn btn-sm btn-success w-100" onclick="exportarExcel()">Excel</button>
+                <button class="btn btn-sm btn-danger w-100" onclick="exportarPDF()">PDF</button>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-sm align-middle">
-                <thead><tr id="table-head"><th>Sector</th></tr></thead>
-                <tbody id="table-body"></tbody>
+            <table class="table table-sm align-middle text-center" id="main-table">
+                <thead id="matriz-head"></thead>
+                <tbody id="matriz-body"></tbody>
             </table>
         </div>
-
-        <div class="footer-credits">Desarrollado por Victoria Tello y Ramón Torres</div>
+        <p class="text-center mt-3 text-muted" style="font-size: 10px;">Desarrollado por Victoria Tello y Ramón Torres</p>
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 
 <script>
-    const sectoresArr = ["ALMA", "ALFA", "ALDE", "TAEL", "TACE", "SIDER", "BOMB", "MAES CH", "RECU", "RECI", "COFI", "SETU", "FACU", "LAEL", "LABO", "PUSI", "PERIM"];
-    const tareas = ["A", "B", "C", "D"];
+    const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
+    const sectores = ["ALMA", "ALFA", "ALDE", "TAEL", "TACE", "SIDER", "BOMB", "MAES CH", "RECU", "RECI", "COFI", "SETU", "FACU", "LAEL", "LABO", "PUSI", "PERIM"];
     
-    // Configuración de Seguridad
-    const credenciales = {
-        "Tello Victoria": { pass: "vicky123", hint: "Apellido de Ramón" },
-        "Torres Ramón": { pass: "moncho123", hint: "Apellido de Victoria" }
-    };
-    
-    let activeUser = localStorage.getItem('activeUser');
-    let db = JSON.parse(localStorage.getItem('db_local')) || {};
-    let metas = JSON.parse(localStorage.getItem('metas_local')) || {};
+    let db = JSON.parse(localStorage.getItem('db_rutina_v9')) || {};
+    let metas = JSON.parse(localStorage.getItem('metas_rutina_v9')) || {};
+    let activeUser = "";
+    let tokenClient, accessToken = null, driveFileId = null;
 
-    // --- LOGICA DE RECUPERACIÓN ---
-    function recuperarClave() {
-        const user = document.getElementById('user-input').value;
-        const pregunta = credenciales[user].hint;
-        
-        let respuesta = prompt(`Recuperación para ${user}:\n\nPregunta de seguridad: ¿Cual es el ${pregunta}?`);
-        
-        if (respuesta === null) return; // Cancelado
-
-        const r = respuesta.trim().toLowerCase();
-        
-        // Validación de la respuesta (basada en los apellidos de los desarrolladores)
-        if ((user === "Tello Victoria" && r === "torres") || (user === "Torres Ramón" && r === "tello")) {
-            alert(`Validación correcta.\n\nTu contraseña es: ${credenciales[user].pass}`);
-        } else {
-            alert("Respuesta incorrecta. Contacta al otro supervisor para asistencia.");
-        }
-    }
-
-    // --- LOGICA DE SESIÓN ---
-    function attemptLogin() {
-        const u = document.getElementById('user-input').value;
-        const p = document.getElementById('pass-input').value;
-        if(credenciales[u] && credenciales[u].pass === p) {
-            activeUser = u;
-            localStorage.setItem('activeUser', u);
-            initApp();
-        } else {
-            document.getElementById('login-err').classList.remove('d-none');
-        }
-    }
-
-    function logout() {
-        localStorage.removeItem('activeUser');
-        location.reload();
-    }
-
-    function initApp() {
+    function manejarLogin() {
+        activeUser = document.getElementById('user-input').value;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        document.getElementById('display-user').innerText = activeUser;
-        document.getElementById('view-user').value = activeUser;
-        
-        // Fecha lunes actual
-        const d = new Date();
-        const diff = d.getDate() - d.getDay() + (d.getDay() == 0 ? -6 : 1);
-        document.getElementById('current-date').valueAsDate = new Date(d.setDate(diff));
-        
-        switchView();
+        document.getElementById('display-user-name').innerText = activeUser;
+        document.getElementById('data-date').valueAsDate = new Date();
+        renderMatriz();
     }
 
-    function switchView() {
-        const viewSup = document.getElementById('view-user').value;
-        const isReadonly = (activeUser !== viewSup);
-        document.getElementById('readonly-msg').classList.toggle('d-none', !isReadonly);
-        document.getElementById('table-body').classList.toggle('readonly-mode', isReadonly);
-        renderTable();
-    }
+    // Google Drive
+    window.onload = () => {
+        gapi.load('client', () => gapi.client.init({}));
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
+            callback: (resp) => {
+                accessToken = resp.access_token;
+                document.getElementById('drive-badge').className = "sync-status bg-success text-white me-2";
+                document.getElementById('drive-badge').innerText = "Drive: On";
+                syncDriveData();
+            },
+        });
+    };
+    function vincularGoogle() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
-    function renderTable() {
-        const head = document.getElementById('table-head');
-        const body = document.getElementById('table-body');
-        const baseDate = new Date(document.getElementById('current-date').value);
-        const viewSup = document.getElementById('view-user').value;
-
-        head.innerHTML = '<th>Sector</th>';
-        const dias = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-        for(let i=0; i<7; i++){
-            let d = new Date(baseDate); d.setDate(d.getDate() + i);
-            head.innerHTML += `<th>${dias[i]}<br><small>${d.getDate()}/${d.getMonth()+1}</small></th>`;
+    async function syncDriveData() {
+        const r = await fetch('https://www.googleapis.com/drive/v3/files?q=name="rutina_ae_v9.json" and trashed=false', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const d = await r.json();
+        if (d.files && d.files.length > 0) {
+            driveFileId = d.files[0].id;
+            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const remote = await res.json();
+            db = remote.db || db; metas = remote.metas || metas;
+            renderMatriz();
         }
+    }
 
+    async function saveToDrive() {
+        if (!accessToken) return;
+        const metadata = { name: 'rutina_ae_v9.json', mimeType: 'application/json' };
+        const content = JSON.stringify({ db, metas });
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', new Blob([content], { type: 'application/json' }));
+        const url = driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        await fetch(url, { method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
+    }
+
+    function renderMatriz() {
+        const head = document.getElementById('matriz-head'), body = document.getElementById('matriz-body'), base = new Date(document.getElementById('data-date').value);
+        const lunes = new Date(base.setDate(base.getDate() - (base.getDay() === 0 ? 6 : base.getDay() - 1)));
+        head.innerHTML = `<tr><th>Sector</th>${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i) => {
+            let dt = new Date(lunes); dt.setDate(dt.getDate() + i);
+            return `<th>${d}<br><small>${dt.getDate()}/${dt.getMonth()+1}</small></th>`;
+        }).join('')}</tr>`;
         body.innerHTML = '';
-        sectoresArr.forEach(sec => {
-            let row = `<tr><td class="sector-name" onclick="clickSector('${sec}')">
-                ${sec}<br><small class="text-muted" style="font-size:9px">Meta: ${metas[sec+'_'+viewSup]?.s || 0}s</small>
-            </td>`;
-            for(let i=0; i<7; i++){
-                let d = new Date(baseDate); d.setDate(d.getDate() + i);
-                let fKey = `${sec}_${d.toISOString().split('T')[0]}_${viewSup}`;
-                let data = db[fKey] || { op: 0, A: null, B: null, C: null, D: null };
-                row += `<td>
-                    <div class="task-container">
-                        <div class="operarios-num" onclick="toggleOp('${fKey}')">${data.op}</div>
-                        <div class="task-grid">
-                            ${tareas.map(t => `<div class="task-cell ${data[t]===true?'task-ok':data[t]===false?'task-fail':''}" 
-                                onclick="toggleTask('${fKey}','${t}')">${t}</div>`).join('')}
-                        </div>
-                    </div>
-                </td>`;
+        sectores.forEach(sec => {
+            let mS = metas[sec + '_' + activeUser]?.s || 0;
+            let row = `<tr><td class="sector-name" onclick="clickSector('${sec}')">${sec}<br><small class="text-muted" style="font-size:8px">Meta: ${mS}v/sem</small></td>`;
+            for(let i=0; i<7; i++) {
+                let dt = new Date(lunes); dt.setDate(dt.getDate() + i);
+                let k = `${sec}_${dt.toISOString().split('T')[0]}_${activeUser}`;
+                let d = db[k] || { op: 0, A: null, B: null, C: null, D: null };
+                row += `<td><div class="task-container"><div class="operarios-num" onclick="cambiarOp('${k}')">${d.op}</div><div class="task-grid">
+                ${['A','B','C','D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="cambiarT('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
             }
             body.innerHTML += row + '</tr>';
         });
         updateStats();
     }
 
-    function toggleTask(id, t) {
-        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null };
-        db[id][t] = db[id][t] === null ? true : (db[id][t] === true ? false : null);
-        save();
-    }
-
-    function toggleOp(id) {
-        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null };
-        db[id].op = (db[id].op + 1) % 5;
-        save();
-    }
-
-    function save() {
-        localStorage.setItem('db_local', JSON.stringify(db));
-        localStorage.setItem('metas_local', JSON.stringify(metas));
-        renderTable();
-    }
-
     function clickSector(sec) {
-        const viewSup = document.getElementById('view-user').value;
-        if(activeUser !== viewSup) return;
-        
-        let m = metas[sec+'_'+viewSup] || { s: 0, m: 0 };
-        let ns = prompt(`Sector: ${sec}\nConfigurar Meta Semanal de Visitas:`, m.s);
-        if(ns !== null) {
-            metas[sec+'_'+viewSup] = { s: parseInt(ns) || 0 };
-            save();
-        }
+        let visitas = 0, semanas = new Set();
+        Object.keys(db).forEach(k => { if(k.startsWith(sec) && k.endsWith(activeUser)) { visitas++; semanas.add(k.split('_')[1].substring(0,7)); } });
+        let prom = semanas.size ? (visitas / semanas.size).toFixed(1) : 0;
+        let ns = prompt(`${sec}\nPromedio Real: ${prom} v/sem\nEstablecer Meta Semanal:`, metas[sec+'_'+activeUser]?.s || 0);
+        if(ns !== null) { metas[sec+'_'+activeUser] = { s: parseInt(ns) || 0 }; save(); }
     }
+
+    function cambiarT(k, t) { if(!db[k]) db[k] = { op: 0, A: null, B: null, C: null, D: null }; db[k][t] = (db[k][t] === null) ? true : (db[k][t] === true ? false : null); save(); }
+    function cambiarOp(k) { if(!db[k]) db[k] = { op: 0, A: null, B: null, C: null, D: null }; db[k].op = (db[k].op + 1) % 5; save(); }
+    function save() { localStorage.setItem('db_rutina_v9', JSON.stringify(db)); localStorage.setItem('metas_rutina_v9', JSON.stringify(metas)); renderMatriz(); saveToDrive(); }
 
     function updateStats() {
-        // Lógica de cálculo simplificada para el ejemplo
-        const f = (a, b) => b === 0 ? "0.0" : ((a/b)*100).toFixed(1);
-        document.getElementById('p-sem-total').innerText = "0.0";
-        document.getElementById('p-mes-total').innerText = "0.0";
+        const base = new Date(document.getElementById('data-date').value);
+        const mAct = base.getMonth(), aAct = base.getFullYear();
+        let s = { ok:0, tot:0, A:0, At:0, B:0, Bt:0, C:0, Ct:0, D:0, Dt:0 }, m = { ok:0, tot:0, A:0, At:0, B:0, Bt:0, C:0, Ct:0, D:0, Dt:0 };
+        const f = (a, b) => b === 0 ? "0%" : Math.round((a/b)*100) + "%";
+        Object.keys(db).forEach(k => {
+            if(!k.endsWith(activeUser)) return;
+            let d = new Date(k.split('_')[1]), item = db[k], isSem = (d >= base && d <= new Date(new Date(base).setDate(base.getDate()+6))), isMes = (d.getMonth() === mAct && d.getFullYear() === aAct);
+            ['A','B','C','D'].forEach(t => { if(item[t] !== null) { if(isSem) { s.tot++; s[t+'t']++; if(item[t]) { s.ok++; s[t]++; } } if(isMes) { m.tot++; m[t+'t']++; if(item[t]) { m.ok++; m[t]++; } } } });
+        });
+        document.getElementById('ps-total').innerText = f(s.ok, s.tot); document.getElementById('ps-a').innerText = f(s.A, s.At); document.getElementById('ps-b').innerText = f(s.B, s.Bt); document.getElementById('ps-c').innerText = f(s.C, s.Ct); document.getElementById('ps-d').innerText = f(s.D, s.Dt);
+        document.getElementById('pm-total').innerText = f(m.ok, m.tot); document.getElementById('pm-a').innerText = f(m.A, m.At); document.getElementById('pm-b').innerText = f(m.B, m.Bt); document.getElementById('pm-c').innerText = f(m.C, m.Ct); document.getElementById('pm-d').innerText = f(m.D, m.Dt);
     }
 
     function exportarExcel() {
-        let data = [["Sector", "Fecha", "Supervisor", "A", "B", "C", "D", "Operarios"]];
+        let rows = [["Sector", "Fecha", "Supervisor", "Tarea A", "Tarea B", "Tarea C", "Tarea D", "Operarios"]];
         Object.keys(db).forEach(k => {
-            let [sec, fecha, sup] = k.split('_');
-            data.push([sec, fecha, sup, db[k].A, db[k].B, db[k].C, db[k].D, db[k].op]);
+            let p = k.split('_');
+            rows.push([p[0], p[1], p[2], db[k].A?'OK':'F', db[k].B?'OK':'F', db[k].C?'OK':'F', db[k].D?'OK':'F', db[k].op]);
         });
-        XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet(data), "Data").window?.XLSX.writeFile(`Reporte_Limpieza.xlsx`);
+        let ws = XLSX.utils.aoa_to_sheet(rows);
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Rutina AE");
+        XLSX.writeFile(wb, `Reporte_AE_${activeUser}.xlsx`);
     }
 
     function exportarPDF() {
-        html2pdf().set({ margin: 0.2, filename: 'Reporte.pdf', jsPDF: { orientation: 'landscape' } })
-        .from(document.getElementById('app-content')).save();
+        const element = document.getElementById('app-content');
+        const opt = { margin: 0.1, filename: 'Rutina_AE.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } };
+        html2pdf().set(opt).from(element).save();
     }
-
-    if(activeUser) initApp();
+    setInterval(saveToDrive, 60000);
 </script>
 </body>
 </html>
