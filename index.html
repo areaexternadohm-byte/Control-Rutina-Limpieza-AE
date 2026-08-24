@@ -29,14 +29,10 @@
         .percent-val { font-size: 1.1rem; font-weight: bold; }
         .stat-row { display: flex; justify-content: space-between; padding: 2px 10px; border-bottom: 1px solid #f9f9f9; }
 
-        /* Tabla - Sector al 40% (78px) */
+        /* Tabla */
         .table-responsive { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.58rem; vertical-align: middle; border: 1px solid #dee2e6 !important; font-weight: bold; padding: 6px 1px !important; }
-        .sector-name { 
-            font-weight: 700; cursor: pointer; width: 78px !important; min-width: 78px !important; max-width: 78px !important;
-            background: #f8f9fa; border-left: 4px solid transparent; text-align: left; padding: 6px 4px !important; 
-            color: var(--primary); font-size: 0.70rem; word-wrap: break-word; line-height: 1.1;
-        }
+        .sector-name { font-weight: 700; cursor: pointer; width: 78px !important; min-width: 78px !important; max-width: 78px !important; background: #f8f9fa; border-left: 4px solid transparent; text-align: left; padding: 6px 4px !important; color: var(--primary); font-size: 0.70rem; word-wrap: break-word; line-height: 1.1; }
         .sector-perc-label { font-size: 0.52rem; color: #7f8c8d; font-weight: normal; display: block; margin-top: 2px; line-height: 1; }
         
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; color: #0366d6; width: 38px; border: 1px solid #dee2e6 !important; }
@@ -51,6 +47,10 @@
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
+        /* Bloqueo de día anterior */
+        .day-locked { opacity: 0.6; pointer-events: none; background-color: #f0f0f0 !important; position: relative; }
+        .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 8px; }
+
         .btn-google-drive { background: white !important; border: 2px solid transparent !important; border-image: linear-gradient(to bottom right, var(--g-blue), var(--g-green), var(--g-yellow), var(--g-red)) 1 !important; color: #5f6368 !important; font-weight: 700; font-size: 0.6rem; padding: 2px 6px; display: flex; align-items: center; gap: 4px; margin-right: 10px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
         .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -59,7 +59,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card">
         <h3 class="login-title">Control de cumplimiento de rutina de limpieza AE</h3>
@@ -72,17 +71,15 @@
         </div>
         <div class="text-start mb-4">
             <label class="small fw-bold">Contraseña (Visible):</label>
-            <input type="text" id="pass-input" class="form-control" placeholder="Clave">
+            <input type="text" id="pass-input" class="form-control" placeholder="Escriba su clave">
         </div>
         <button class="btn btn-primary w-100 shadow fw-bold" onclick="manejarLogin()">INICIAR</button>
         <a onclick="recuperarClave()" class="small mt-3 d-block text-decoration-none" style="color: var(--accent); cursor:pointer;">¿Olvidaste tu contraseña?</a>
     </div>
 </div>
 
-<!-- APP -->
 <div class="main-app" id="app">
     <div class="text-center app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
-    
     <nav class="navbar navbar-dark bg-dark px-3 shadow-sm no-print">
         <span class="navbar-brand mb-0 h6 small">Supervisor: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center">
@@ -159,7 +156,6 @@
     const creds = { "Tello Victoria": { pass: "victoria.ae", hint: "Torres" }, "Torres Ramón": { pass: "ramon.ae", hint: "Tello" } };
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
-    let metas = JSON.parse(localStorage.getItem('metas_ae_vFinal')) || {};
     let activeUser = "";
     let tokenClient, accessToken = null, driveFileId = null;
 
@@ -189,6 +185,7 @@
             callback: (resp) => { accessToken = resp.access_token; document.getElementById('google-btn').innerText = "✅ DRIVE OK"; syncDriveData(); },
         });
     };
+
     function vincularGoogle() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
     async function syncDriveData() {
@@ -214,14 +211,15 @@
 
     function renderMatriz() {
         const head = document.getElementById('matriz-head'), body = document.getElementById('matriz-body');
-        const baseDate = new Date(document.getElementById('data-date').value);
+        const selectedDate = new Date(document.getElementById('data-date').value);
         const viewSup = document.getElementById('view-user').value;
         const isReadonly = activeUser !== viewSup;
-        body.className = isReadonly ? 'readonly-mode' : '';
+        
+        // Fecha de hoy sin horas para comparar
+        const today = new Date(); today.setHours(0,0,0,0);
 
-        // DÍA 1 de la matriz = Fecha Seleccionada + 1 día
-        const startDate = new Date(baseDate);
-        startDate.setDate(baseDate.getDate() + 1);
+        const startDate = new Date(selectedDate);
+        startDate.setDate(selectedDate.getDate() + 1);
 
         head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-mes-col">Oper. Mes</th><th class="summary-col">V. Sem.</th><th class="op-col">Oper. Sem.</th>${[0,1,2,3,4,5,6].map(i => {
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
@@ -232,7 +230,6 @@
         sectores.forEach(sec => {
             let sumOpWeek = 0, countVisitsWeek = 0, sumOpMonth = 0, countVisitsMonth = 0, okWeek = 0, okMonth = 0, dayCells = "";
             
-            // 30 días desde startDate
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -244,7 +241,6 @@
                 }
             }
 
-            // 7 días desde startDate
             for(let i=0; i<7; i++) {
                 let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
                 let fKey = dt.toISOString().split('T')[0];
@@ -255,8 +251,16 @@
                 if(d.op > 0 || d.A !== null || d.B !== null || d.C !== null || d.D !== null) countVisitsWeek++;
                 ['A','B','C','D'].forEach(t => { if(d[t]===true) okWeek++; });
 
-                dayCells += `<td><div class="task-container"><div class="operarios-num" onclick="toggleOp('${k}')">${d.op}</div><div class="task-grid">
-                ${['A','B','C','D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
+                // Lógica de bloqueo si el día es anterior a hoy
+                const isPast = dt < today;
+                const lockClass = (isPast || isReadonly) ? 'day-locked' : '';
+
+                dayCells += `<td><div class="task-container ${lockClass}">
+                    <div class="operarios-num" onclick="toggleOp('${k}')">${d.op}</div>
+                    <div class="task-grid">
+                        ${['A','B','C','D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}
+                    </div>
+                </div></td>`;
             }
 
             let pS = Math.round((okWeek / 28) * 100), pM = Math.round((okMonth / 120) * 100);
@@ -268,8 +272,16 @@
         updateStats(startDate);
     }
 
-    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(); }
-    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id].op) + 1) % 5; save(); }
+    function toggleTask(id, t) { 
+        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
+        db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); 
+        save(); 
+    }
+    function toggleOp(id) { 
+        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
+        db[id].op = (parseInt(db[id].op) + 1) % 5; 
+        save(); 
+    }
     function save() { localStorage.setItem('db_ae_vFinal', JSON.stringify(db)); renderMatriz(); saveToDrive(); }
 
     function updateStats(startDate) {
@@ -290,17 +302,17 @@
             }
         });
 
-        const setUI = (id, ok, total) => {
+        const updateUI = (id, ok, total) => {
             const pct = total === 0 ? 0 : Math.round((ok/total)*100);
             const el = document.getElementById(id);
             el.innerText = pct + "%";
             el.className = pct < 60 ? (id.includes('total') ? 'percent-val pct-low' : 'pct-low') : (id.includes('total') ? 'percent-val pct-high' : 'pct-high');
         };
 
-        setUI('ps-total', s.ok, totalPosSem * 4);
-        ['A','B','C','D'].forEach(t => setUI('ps-'+t.toLowerCase(), s[t], totalPosSem));
-        setUI('pm-total', m.ok, totalPosMes * 4);
-        ['A','B','C','D'].forEach(t => setUI('pm-'+t.toLowerCase(), m[t], totalPosMes));
+        updateUI('ps-total', s.ok, totalPosSem * 4);
+        ['A','B','C','D'].forEach(t => updateUI('ps-'+t.toLowerCase(), s[t], totalPosSem));
+        updateUI('pm-total', m.ok, totalPosMes * 4);
+        ['A','B','C','D'].forEach(t => updateUI('pm-'+t.toLowerCase(), m[t], totalPosMes));
     }
 
     function exportarExcel() {
