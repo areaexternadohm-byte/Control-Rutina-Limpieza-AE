@@ -12,11 +12,10 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.82rem; }
         .app-title-header { font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; margin: 0; padding: 10px 5px; background-color: var(--primary); }
-        .login-title { font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 20px; font-size: 1.1rem; }
-
+        
         /* Login */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
         .main-app { display: none; }
 
         /* Semáforo */
@@ -32,12 +31,7 @@
         /* Tabla */
         .table-responsive { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.58rem; vertical-align: middle; border: 1px solid #dee2e6 !important; font-weight: bold; padding: 6px 1px !important; }
-        
-        .sector-name { 
-            font-weight: 700; cursor: pointer; width: 78px !important; min-width: 78px !important; max-width: 78px !important;
-            background: #f8f9fa; border-left: 4px solid transparent; text-align: left; padding: 6px 4px !important; 
-            color: var(--primary); font-size: 0.70rem; word-wrap: break-word; line-height: 1.1;
-        }
+        .sector-name { font-weight: 700; cursor: pointer; width: 78px !important; min-width: 78px !important; max-width: 78px !important; background: #f8f9fa; border-left: 4px solid transparent; text-align: left; padding: 6px 4px !important; color: var(--primary); font-size: 0.70rem; word-wrap: break-word; line-height: 1.1; }
         .sector-perc-label { font-size: 0.52rem; color: #7f8c8d; font-weight: normal; display: block; margin-top: 2px; line-height: 1; }
         
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; color: #0366d6; width: 38px; border: 1px solid #dee2e6 !important; }
@@ -52,41 +46,39 @@
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
-        /* Bloqueo */
+        /* Bloqueo Visual */
         .day-locked { opacity: 0.6; pointer-events: none; background-color: #f2f2f2 !important; position: relative; }
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 8px; }
 
         .btn-google-drive { background: white !important; border: 2px solid transparent !important; border-image: linear-gradient(to bottom right, var(--g-blue), var(--g-green), var(--g-yellow), var(--g-red)) 1 !important; color: #5f6368 !important; font-weight: 700; font-size: 0.6rem; padding: 2px 6px; display: flex; align-items: center; gap: 4px; margin-right: 10px; }
+        .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
         .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card">
-        <h3 class="login-title">Control de cumplimiento de rutina de limpieza AE</h3>
+        <h3 class="fw-bold mb-4" style="color: var(--primary)">Acceso Rutina AE</h3>
         <div class="text-start mb-3">
             <label class="small fw-bold">Usuario:</label>
-            <select id="user-input" class="form-select" onchange="toggleAdminPass()">
+            <select id="user-input" class="form-select" onchange="checkAdminField()">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
                 <option value="Administrador">👑 Administrador</option>
             </select>
         </div>
-        <div id="admin-field" class="text-start mb-4 d-none">
-            <label class="small fw-bold text-danger">Contraseña Administrador:</label>
+        <div id="admin-pass-container" class="text-start mb-4 d-none">
+            <label class="small fw-bold text-danger">Contraseña Maestro:</label>
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
         <button class="btn btn-primary w-100 shadow fw-bold" onclick="manejarLogin()">INICIAR</button>
     </div>
 </div>
 
-<!-- APP -->
 <div class="main-app" id="app">
     <div class="text-center app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
-    
     <nav class="navbar navbar-dark bg-dark px-3 shadow-sm no-print">
         <span class="navbar-brand mb-0 h6 small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center">
@@ -99,40 +91,34 @@
     </nav>
 
     <div class="container-fluid py-3" id="app-content">
-        <div id="role-alert" class="alert alert-info py-1 text-center d-none" style="font-size: 0.7rem;"></div>
+        <div id="perm-alert" class="alert py-1 text-center d-none" style="font-size: 0.7rem;"></div>
 
         <div class="row g-2">
             <div class="col-6">
                 <div class="stats-card">
-                    <div class="stats-title text-center">Cumplimiento Semanal</div>
+                    <div class="stats-title text-center">Semanal</div>
                     <div class="stat-row"><span class="small fw-bold">Total</span><span id="ps-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">A</span><span id="ps-a" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">B</span><span id="ps-b" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">C</span><span id="ps-c" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">D</span><span id="ps-d" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>A</span><span id="ps-a" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>B</span><span id="ps-b" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>C</span><span id="ps-c" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>D</span><span id="ps-d" class="stat-num">0%</span></div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="stats-card">
-                    <div class="stats-title text-center">Cumplimiento Mensual</div>
+                    <div class="stats-title text-center">Mensual</div>
                     <div class="stat-row"><span class="small fw-bold">Total</span><span id="pm-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">A</span><span id="pm-a" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">B</span><span id="pm-b" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">C</span><span id="pm-c" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span class="small fw-bold">D</span><span id="pm-d" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>A</span><span id="pm-a" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>B</span><span id="pm-b" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>C</span><span id="pm-c" class="stat-num">0%</span></div>
+                    <div class="stat-row"><span>D</span><span id="pm-d" class="stat-num">0%</span></div>
                 </div>
             </div>
         </div>
 
-        <div class="legend-card text-center no-print">
-            <span class="me-2 fw-bold" style="font-size: 0.7rem;">A:Pisos/Rec.</span>
-            <span class="me-2 fw-bold" style="font-size: 0.7rem;">B:Vidrios/Par.</span>
-            <span class="me-2 fw-bold" style="font-size: 0.7rem;">C:Bolseo/Segr.</span>
-            <span class="fw-bold" style="font-size: 0.7rem;">D:Hidro/Barr.</span>
-        </div>
-
         <div class="row g-2 mb-3 no-print">
             <div class="col-6">
+                <label class="small fw-bold">Viendo registros de:</label>
                 <select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()">
                     <option value="Tello Victoria">Tello Victoria</option>
                     <option value="Torres Ramón">Torres Ramón</option>
@@ -164,11 +150,12 @@
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
+    let metas = JSON.parse(localStorage.getItem('metas_ae_vFinal')) || {};
     let activeUser = "";
     let tokenClient, accessToken = null, driveFileId = null;
 
-    function toggleAdminPass() {
-        document.getElementById('admin-field').classList.toggle('d-none', document.getElementById('user-input').value !== "Administrador");
+    function checkAdminField() {
+        document.getElementById('admin-pass-container').classList.toggle('d-none', document.getElementById('user-input').value !== "Administrador");
     }
 
     function manejarLogin() {
@@ -181,12 +168,6 @@
         document.getElementById('app').style.display = 'block';
         document.getElementById('active-user-display').innerText = activeUser;
         document.getElementById('view-user').value = (u === "Administrador") ? "Tello Victoria" : u;
-        
-        const alertBox = document.getElementById('role-alert');
-        alertBox.classList.remove('d-none');
-        alertBox.innerHTML = (u === "Administrador") ? "⚡ MODO ADMIN: Control total del historial" : "ℹ️ MODO SUPERVISOR: Solo editas tus datos actuales";
-        alertBox.className = (u === "Administrador") ? "alert alert-danger py-1 text-center" : "alert alert-info py-1 text-center";
-
         document.getElementById('data-date').valueAsDate = new Date();
         renderMatriz();
     }
@@ -227,7 +208,22 @@
         const viewSup = document.getElementById('view-user').value;
         const today = new Date(); today.setHours(0,0,0,0);
         
-        // Fecha inicio Matriz = Fecha seleccionada + 1
+        // REGLA DE LECTURA: Si no soy admin y estoy viendo a otro supervisor
+        const isAnotherSupervisor = (activeUser !== "Administrador" && activeUser !== viewSup);
+        const alertBox = document.getElementById('perm-alert');
+        alertBox.classList.remove('d-none');
+        
+        if (activeUser === "Administrador") {
+            alertBox.innerHTML = "⚡ <b>MODO ADMINISTRADOR:</b> Control total habilitado.";
+            alertBox.className = "alert alert-danger py-1 text-center";
+        } else if (isAnotherSupervisor) {
+            alertBox.innerHTML = "🔒 <b>MODO LECTURA:</b> Solo visualizas los datos de tu compañero.";
+            alertBox.className = "alert alert-warning py-1 text-center";
+        } else {
+            alertBox.innerHTML = "✅ <b>MODO EDICIÓN:</b> Gestionando tus propios registros.";
+            alertBox.className = "alert alert-info py-1 text-center";
+        }
+
         const startDate = new Date(selectedDate);
         startDate.setDate(selectedDate.getDate() + 1);
 
@@ -240,7 +236,6 @@
         sectores.forEach(sec => {
             let sumOpWeek = 0, countVisitsWeek = 0, sumOpMonth = 0, countVisitsMonth = 0, okWeek = 0, okMonth = 0, dayCells = "";
             
-            // 30 días desde startDate
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -262,13 +257,9 @@
                 if(d.op > 0 || d.A !== null || d.B !== null || d.C !== null || d.D !== null) countVisitsWeek++;
                 ['A','B','C','D'].forEach(t => { if(d[t]===true) okWeek++; });
 
-                // REGLA DE BLOQUEO:
-                // 1. Si el usuario activo NO es el dueño de los datos (Victoria no edita a Ramón).
-                // 2. Si el día es pasado (menor que hoy).
-                // EXCEPCIÓN: El Administrador puede todo.
-                const esDueño = (activeUser === viewSup);
-                const esPasado = (dt < today);
-                const bloqueado = (activeUser !== "Administrador") && (!esDueño || esPasado);
+                // Lógica de Bloqueo: Bloqueado si es otro supervisor o si es pasado (y no soy admin)
+                const isPast = dt < today;
+                const bloqueado = (activeUser !== "Administrador") && (isAnotherSupervisor || isPast);
 
                 dayCells += `<td><div class="task-container ${bloqueado ? 'day-locked' : ''}">
                     <div class="operarios-num" onclick="toggleOp('${k}')">${d.op}</div>
@@ -280,7 +271,7 @@
 
             let pS = Math.round((okWeek / 28) * 100), pM = Math.round((okMonth / 120) * 100);
             body.innerHTML += `<tr>
-                <td class="sector-name">${sec}<span class="sector-perc-label">Sem: <span class="${pS < 60 ? 'pct-low' : 'pct-high'}">${pS}%</span></span><span class="sector-perc-label">Mes: <span class="${pM < 60 ? 'pct-low' : 'pct-high'}">${pM}%</span></span></td>
+                <td class="sector-name">${sec}<span class="sector-perc-label">Sem: <span class="${pS < 60 ? 'pct-low' : 'pct-high'}">${pS}%</span></span><span class="sector-perc-label">Mes: <span class="${pM < 60 ? 'pct-low' : 'pct-high'}" style="color:var(--accent)">${pM}%</span></span></td>
                 <td class="summary-col">${countVisitsMonth}</td><td class="op-mes-col">${sumOpMonth}</td><td class="summary-col">${countVisitsWeek}</td><td class="op-col">${sumOpWeek}</td>${dayCells}
             </tr>`;
         });
@@ -309,16 +300,16 @@
             }
         });
 
-        const setUI = (id, ok, total) => {
+        const fUI = (id, ok, total) => {
             const pct = total === 0 ? 0 : Math.round((ok/total)*100);
             const el = document.getElementById(id); el.innerText = pct + "%";
             el.className = pct < 60 ? (id.includes('total') ? 'percent-val pct-low' : 'pct-low') : (id.includes('total') ? 'percent-val pct-high' : 'pct-high');
         };
 
-        setUI('ps-total', s.ok, totalPosSem * 4);
-        ['A','B','C','D'].forEach(t => setUI('ps-'+t.toLowerCase(), s[t], totalPosSem));
-        setUI('pm-total', m.ok, totalPosMes * 4);
-        ['A','B','C','D'].forEach(t => setUI('pm-'+t.toLowerCase(), m[t], totalPosMes));
+        fUI('ps-total', s.ok, totalPosSem * 4);
+        ['A','B','C','D'].forEach(t => fUI('ps-'+t.toLowerCase(), s[t], totalPosSem));
+        fUI('pm-total', m.ok, totalPosMes * 4);
+        ['A','B','C','D'].forEach(t => fUI('pm-'+t.toLowerCase(), m[t], totalPosMes));
     }
 
     function exportarExcel() {
