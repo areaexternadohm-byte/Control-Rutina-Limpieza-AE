@@ -28,21 +28,15 @@
 
         /* Stats */
         .stats-card { background: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; border-top: 4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; }
+        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; text-align: center; }
         .percent-val { font-size: 1.1rem; font-weight: bold; }
         .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 2px 5px; }
 
         /* Tabla */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
-        
-        .sector-name { 
-            font-weight: 700; width: 78px !important; min-width: 78px !important; 
-            background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; 
-            text-align: left; padding: 5px !important; border-left: 4px solid transparent; 
-        }
-        /* Porcentajes en columna sector */
-        .sector-perc-label { font-size: 0.52rem; color: #7f8c8d; display: block; line-height: 1.2; margin-top: 1px; font-weight: normal; }
+        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; line-height: 1.2; }
+        .sector-name { font-weight: 700; width: 78px !important; min-width: 78px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
+        .sector-perc-label { font-size: 0.5rem; color: #7f8c8d; display: block; line-height: 1.1; margin-top: 1px; font-weight: normal; }
         
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
@@ -55,6 +49,7 @@
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
+        /* Bloqueos */
         .day-locked { opacity: 0.5; pointer-events: none; background-color: #f2f2f2 !important; position: relative; }
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
@@ -76,7 +71,7 @@
 <!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card shadow">
-        <h4 class="fw-bold mb-4">Rutina AE</h4>
+        <h3 class="fw-bold mb-4" style="color: var(--primary)">Acceso Rutina AE</h3>
         <div class="text-start mb-3">
             <label class="small fw-bold">Usuario:</label>
             <select id="user-input" class="form-select" onchange="toggleAdminPass()">
@@ -90,48 +85,44 @@
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
         <button class="btn btn-primary w-100 fw-bold py-2" onclick="manejarLogin()">INICIAR</button>
-        <a onclick="recuperarClave()" class="small mt-3 d-block text-center text-decoration-none" style="color: var(--accent); cursor:pointer;">¿Olvidaste tu contraseña?</a>
     </div>
 </div>
 
 <!-- APP -->
 <div class="main-app" id="app">
-    <div class="app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
-    
-    <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
-        <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
-        <div class="d-flex align-items-center gap-1">
-            <button id="google-btn" class="btn-google-drive" onclick="vincularGoogle()">DRIVE</button>
-            <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
-            <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
-        </div>
-    </nav>
-
-    <div class="container-fluid py-2" id="main-content">
-        <div class="row g-2 mb-2">
-            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
-            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
-        </div>
-
-        <div class="legend-card text-center no-print">
-            <span class="fw-bold" style="font-size: 0.65rem;">A:Pisos B:Vidrios C:Bolseo D:Hidro/Barr.</span>
-        </div>
-
-        <div class="row g-2 mb-2 no-print">
-            <div class="col-5">
-                <select id="view-user" class="form-select form-select-sm mb-1" onchange="renderMatriz()">
-                    <option value="Tello Victoria">Victoria</option>
-                    <option value="Torres Ramón">Ramón</option>
-                </select>
-                <input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()">
+    <div id="pdf-area">
+        <div class="app-title-header">Control de cumplimiento de rutina de limpieza AE</div>
+        
+        <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
+            <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
+            <div class="d-flex align-items-center gap-1">
+                <button id="google-btn" class="btn btn-google-drive" onclick="vincularGoogle()">DRIVE</button>
+                <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
+                <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
             </div>
-            <div class="col-7 d-flex gap-1 align-items-end">
-                <button class="btn btn-success btn-sm w-100 fw-bold" onclick="exportarExcel()">EXCEL</button>
-                <button class="btn btn-danger btn-sm w-100 fw-bold" onclick="exportarPDF()">PDF</button>
-            </div>
-        </div>
+        </nav>
 
-        <div id="pdf-area">
+        <div class="container-fluid py-2" id="main-content">
+            <div class="row g-2 mb-2">
+                <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
+                <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
+            </div>
+
+            <div class="legend-card text-center no-print">
+                <span class="fw-bold" style="font-size: 0.65rem;">A:Pisos B:Vidrios C:Bolseo D:Hidro/Barr.</span>
+            </div>
+
+            <div class="row g-2 mb-2 no-print">
+                <div class="col-5">
+                    <select id="view-user" class="form-select form-select-sm mb-1" onchange="renderMatriz()"></select>
+                    <input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()">
+                </div>
+                <div class="col-7 d-flex gap-1 align-items-end">
+                    <button class="btn btn-success btn-sm w-100 fw-bold" onclick="exportarExcel()">EXCEL</button>
+                    <button class="btn btn-danger btn-sm w-100 fw-bold" onclick="exportarPDF()">PDF</button>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-sm align-middle text-center" id="main-table">
                     <thead id="matriz-head"></thead>
@@ -141,6 +132,7 @@
         </div>
     </div>
 
+    <!-- Historial -->
     <div class="container-fluid py-2" id="historial-section">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="fw-bold m-0">Historial de Registros</h6>
@@ -161,10 +153,9 @@
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
-    const creds = { "Tello Victoria": "victoria.ae", "Torres Ramón": "ramon.ae", "Administrador": "admin.ae" };
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
-    let metas = JSON.parse(localStorage.getItem('metas_ae_vFinal')) || {};
     let activeUser = "";
     let accessToken = null, driveFileId = null;
 
@@ -186,14 +177,6 @@
         renderMatriz();
     }
 
-    function recuperarClave() {
-        const u = document.getElementById('user-input').value;
-        if (u === "Administrador") return;
-        const r = prompt(`Recuperación: ¿Cual es el apellido de su compañero/a?`);
-        if (r && r.toLowerCase().trim() === (u === "Tello Victoria" ? "torres" : "tello")) alert(`Tu clave es: ${creds[u]}`);
-    }
-
-    // Google Drive
     let tokenClient;
     window.onload = () => {
         gapi.load('client', () => gapi.client.init({}));
@@ -216,10 +199,11 @@
 
     async function saveToDrive() {
         if (!accessToken) return;
+        const content = JSON.stringify(db);
         const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
+        form.append('file', new Blob([content], { type: 'application/json' }));
         fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
         });
@@ -232,18 +216,20 @@
         const today = new Date(); today.setHours(0,0,0,0);
         const isReadonly = (activeUser !== "Administrador" && activeUser !== viewSup);
         
+        // Fecha inicio Matriz = Fecha seleccionada + 1
         const startDate = new Date(selectedDate);
         startDate.setDate(selectedDate.getDate() + 1);
 
+        // ENCABEZADO: Nombre del día + Fecha
         head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-col">O. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">O. Sem</th>${[0,1,2,3,4,5,6].map(i => {
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
-            return `<th>${dt.getDate()}/${dt.getMonth()+1}</th>`;
+            let nombreDia = diasSemana[dt.getDay()];
+            return `<th>${nombreDia}<br>${dt.getDate()}/${dt.getMonth()+1}</th>`;
         }).join('')}</tr>`;
 
         body.innerHTML = '';
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
-            
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -265,14 +251,7 @@
             }
 
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr>
-                <td class="sector-name">
-                    ${sec}
-                    <span class="sector-perc-label">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span>
-                    <span class="sector-perc-label">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span>
-                </td>
-                <td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}
-            </tr>`;
+            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-label">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-label">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
@@ -307,13 +286,13 @@
             let okS = 0, okM = 0;
             sectores.forEach(sec => {
                 for(let i=0; i<7; i++){
-                   let d = new Date(startDate); d.setDate(startDate.getDate() + i);
-                   let k = `${sec}_${d.toISOString().split('T')[0]}_${viewSup}`;
+                   let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+                   let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
                    if(db[k] && db[k][t.toUpperCase()]===true) okS++;
                 }
                 for(let j=0; j<30; j++){
-                   let d = new Date(startDate); d.setDate(startDate.getDate() + j);
-                   let k = `${sec}_${d.toISOString().split('T')[0]}_${viewSup}`;
+                   let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
+                   let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
                    if(db[k] && db[k][t.toUpperCase()]===true) okM++;
                 }
             });
@@ -346,10 +325,9 @@
         const loader = document.getElementById('loader-pdf'); loader.style.display = 'flex';
         const element = document.getElementById('pdf-area').cloneNode(true);
         element.querySelectorAll('.no-print, button').forEach(e => e.remove());
-        const opt = { margin: 0.2, filename: `Reporte_${activeUser}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 1.5, useCORS: true }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } };
+        const opt = { margin: 0.2, filename: `Reporte_AE_${activeUser}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 1.5, useCORS: true }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } };
         html2pdf().from(element).set(opt).save().then(() => loader.style.display = 'none').catch(() => loader.style.display = 'none');
     }
-
     setInterval(saveToDrive, 60000);
 </script>
 </body>
