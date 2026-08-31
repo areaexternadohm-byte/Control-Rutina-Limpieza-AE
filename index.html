@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Gestión Integral</title>
+    <title>Rutina AE - Gestión & Dashboard</title>
     <!-- Librerías Críticas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <style>
         :root { 
             --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
@@ -53,7 +51,7 @@
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
-        /* Botón Dashboard */
+        /* Dashboard Button */
         .btn-dashboard { background-color: var(--looker-blue) !important; color: white !important; font-weight: 800; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; gap: 4px; height: 31px; border: none; box-shadow: 0 4px 6px rgba(66, 133, 244, 0.3); }
 
         #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
@@ -90,7 +88,7 @@
         <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center gap-2">
             <div class="text-white extra-small" style="font-size: 0.6rem;">
-                <span id="sync-status-icon"></span> DRIVE
+                <span id="sync-status-icon"></span> PLANILLA
             </div>
             <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
             <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
@@ -98,13 +96,11 @@
     </nav>
 
     <div class="container-fluid py-2" id="main-content">
-        <!-- Stats -->
         <div class="row g-2 mb-2">
             <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
             <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
         </div>
 
-        <!-- Controles -->
         <div class="row g-2 mb-2 no-print align-items-center">
             <div class="col-4">
                 <select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()">
@@ -142,9 +138,10 @@
 <script src="https://apis.google.com/js/api.js"></script>
 
 <script>
+    // --- CONFIGURACIÓN INTEGRADA ---
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_TU_APPS_SCRIPT_URL/exec'; 
-    const LOOKER_URL = 'https://lookerstudio.google.com/reporting/TU_ID_REPORTE';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwiHYvD7VUlPJNbLQ-ugefF3kvqpyaox5R6E-yWbxH0qNqt9GA_KBjcatSZW8GnDNuI/exec'; 
+    const LOOKER_URL = 'https://lookerstudio.google.com/reporting/TU_ID_DE_REPORTE'; // <--- Pega aquí tu link de Data Studio cuando lo tengas
 
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -159,7 +156,7 @@
 
     function manejarLogin() {
         const u = document.getElementById('user-input').value;
-        if (u === "Administrador" && document.getElementById('pass-maestro').value !== "admin.ae") { alert("Contraseña incorrecta"); return; }
+        if (u === "Administrador" && document.getElementById('pass-maestro').value !== "admin.ae") { alert("Error"); return; }
         activeUser = u;
         tokenClient.requestAccessToken({ prompt: 'consent', login_hint: 'areaexterna.dohm@gmail.com' });
     }
@@ -203,29 +200,32 @@
         localStorage.setItem('db_ae_vFinal', JSON.stringify(db));
         renderMatriz();
 
-        // 1. SOBREESCRIBIR EN DRIVE (CADA CAMBIO)
+        // 1. Sincronizar archivo JSON en Drive
         if (accessToken) {
             const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
-
-            const url = driveFileId 
-                ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` 
-                : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-            fetch(url, {
-                method: driveFileId ? 'PATCH' : 'POST',
-                headers: { Authorization: `Bearer ${accessToken}` },
-                body: form
+            fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
             }).then(r => r.json()).then(res => { if(!driveFileId) driveFileId = res.id; });
         }
 
-        // 2. Sincronizar Fila a Google Sheets (Si URL configurada)
+        // 2. Sincronizar Fila con Google Sheets
         if (WEB_APP_URL && key.includes('_20')) {
+            const statusIcon = document.getElementById('sync-status-icon');
+            statusIcon.classList.remove('sync-active');
             const p = key.split('_');
-            const data = { fecha: p[1], sector: p[0], supervisor: p[2], A: db[key].A, B: db[key].B, C: db[key].C, D: db[key].D, op: db[key].op };
-            fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+            const dataToSheet = {
+                fecha: p[1],
+                sector: p[0],
+                supervisor: p[2],
+                A: db[key].A, B: db[key].B, C: db[key].C, D: db[key].D,
+                op: db[key].op,
+                novedad: db['note_' + p[0] + '_' + p[2]] || ""
+            };
+            fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataToSheet) })
+            .then(() => statusIcon.classList.add('sync-active'));
         }
     }
 
@@ -246,7 +246,6 @@
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
             const secKey = `${sec}_${viewSup}`;
-            
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -268,7 +267,7 @@
             }
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
             const noteClass = db['note_'+secKey] ? 'has-note' : '';
-            body.innerHTML += `<tr><td class="sector-name ${noteClass}">${sec}<button class="btn-note" onclick="editNote('${secKey}')">📝</button><span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
+            body.innerHTML += `<tr><td class="sector-name ${noteClass}">${sec}<button class="btn-note" onclick="editNote('${secKey}')">📝</button><span class="sector-perc-stack">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
@@ -276,52 +275,8 @@
     function editNote(secKey) {
         if(activeUser !== "Administrador" && !secKey.endsWith(activeUser)) return;
         const n = prompt("Novedad:", db['note_'+secKey] || "");
-        if(n !== null) { db['note_'+secKey] = n; save('dummy'); }
+        if(n !== null) { db['note_'+secKey] = n; save('dummy_note'); }
     }
 
     function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
-    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id].op) + 1) % 5; save(id); }
-
-    function updateStats(startDate) {
-        const viewSup = document.getElementById('view-user').value;
-        let s = { ok:0, a:0, b:0, c:0, d:0 }, m = { ok:0, a:0, b:0, c:0, d:0 };
-        sectores.forEach(sec => {
-            for(let i=0; i<7; i++){
-                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
-                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
-                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { s.ok++; s[t.toLowerCase()]++; } });
-            }
-            for(let j=0; j<30; j++){
-                let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
-                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
-                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { m.ok++; m[t.toLowerCase()]++; } });
-            }
-        });
-        const f = (id, ok, total) => {
-            const pct = Math.round((ok/total)*100) || 0;
-            const el = document.getElementById(id); el.innerText = pct + "%";
-            el.className = pct < 60 ? 'percent-val pct-low' : 'percent-val pct-high';
-        };
-        const baseS = sectores.length * 7, baseM = sectores.length * 30;
-        f('ps-total', s.ok, baseS * 4); f('pm-total', m.ok, baseM * 4);
-        ['a','b','c','d'].forEach(t => { 
-            let pS = Math.round((s[t]/baseS)*100)||0, pM = Math.round((m[t]/baseM)*100)||0;
-            document.getElementById('ps-'+t).innerText = pS+"%"; document.getElementById('ps-'+t).className = pS < 60 ? 'pct-low' : 'pct-high';
-            document.getElementById('pm-'+t).innerText = pM+"%"; document.getElementById('pm-'+t).className = pM < 60 ? 'pct-low' : 'pct-high';
-        });
-    }
-
-    function mostrarHistorial() {
-        document.getElementById('main-content').style.display = 'none';
-        document.getElementById('historial-section').style.display = 'block';
-        const list = document.getElementById('historial-body-list');
-        list.innerHTML = "";
-        Object.keys(db).filter(k => k.includes('_20')).sort().reverse().slice(0,50).forEach(k => {
-            const p = k.split('_'); const d = db[k];
-            list.innerHTML += `<div class="list-group-item small"><b>${p[1]}</b> - ${p[0]} (${p[2]}) | Tareas: A:${d.A?'OK':'F'} B:${d.B?'OK':'F'} C:${d.C?'OK':'F'} D:${d.D?'OK':'F'} | Op: ${d.op}</div>`;
-        });
-    }
-    function cerrarHistorial() { document.getElementById('main-content').style.display = 'block'; document.getElementById('historial-section').style.display = 'none'; }
-</script>
-</body>
-</html>
+    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id]
