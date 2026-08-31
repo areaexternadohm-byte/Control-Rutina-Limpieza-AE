@@ -3,12 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Gestión e Historial</title>
-    <!-- Librerías Críticas -->
+    <title>Rutina AE - Control Operativo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <style>
         :root { 
             --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
@@ -34,116 +30,101 @@
 
         /* Tabla */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; line-height: 1.2; }
-        .sector-name { font-weight: 700; width: 78px !important; min-width: 78px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
-        .sector-perc-label { font-size: 0.5rem; color: #7f8c8d; display: block; line-height: 1.1; margin-top: 1px; font-weight: normal; }
+        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
+        .sector-name { font-weight: 700; width: 85px !important; min-width: 85px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; position: relative; }
+        .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
         
+        .btn-note { font-size: 0.7rem; padding: 0; color: var(--accent); cursor: pointer; border: none; background: none; float: right; }
+        .has-note::after { content: '•'; color: #f1c40f; font-size: 20px; position: absolute; top: -5px; left: 2px; }
+
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
         /* Tareas */
-        .task-container { display: inline-block; position: relative; margin-top: 12px; }
-        .operarios-num { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 10px; color: #e67e22; background: #fff; border: 1px solid #e67e22; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; }
-        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; }
-        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 0.5px solid #eee; background: white; height: 20px; cursor: pointer; }
+        .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
+        .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
+        .label-mini { font-size: 0.52rem; color: #999; text-transform: uppercase; }
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; background: #fff; }
+        .task-cell { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 0.5px solid #eee; background: white; height: 20px; cursor: pointer; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
-        /* Bloqueos */
         .day-locked { opacity: 0.5; pointer-events: none; background-color: #f2f2f2 !important; position: relative; }
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
-        .btn-google-drive { background: white !important; border: 2px solid #ddd; border-radius: 5px; font-weight: 700; font-size: 0.6rem; padding: 4px 8px; display: flex; align-items: center; gap: 5px; }
-        .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        #loader-pdf { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        @media print { .no-print { display: none; } }
+        #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
+        .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
     </style>
 </head>
 <body>
 
-<div id="loader-pdf">
-    <div class="spinner-border text-light mb-2"></div>
-    <p>Generando Reporte PDF...</p>
-</div>
-
-<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card shadow">
-        <h3 class="fw-bold mb-4" style="color: var(--primary)">Acceso Rutina AE</h3>
+        <h4 class="fw-bold mb-4" style="color: var(--primary)">Acceso Rutina AE</h4>
         <div class="text-start mb-3">
             <label class="small fw-bold">Usuario:</label>
-            <select id="user-input" class="form-select" onchange="toggleAdminPass()">
+            <select id="user-input" class="form-select">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
                 <option value="Administrador">👑 Administrador</option>
             </select>
         </div>
         <div id="admin-field" class="text-start mb-4 d-none">
-            <label class="small fw-bold text-danger">Clave Maestro:</label>
+            <label class="small fw-bold text-danger">Contraseña Maestro:</label>
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
-        <button class="btn btn-primary w-100 fw-bold py-2" onclick="manejarLogin()">INICIAR</button>
+        <button class="btn btn-primary w-100 fw-bold py-2 shadow" onclick="manejarLogin()">INICIAR</button>
+        <p class="small text-muted mt-3">Sincronización: <b>areaexterna.dohm@gmail.com</b></p>
     </div>
 </div>
 
-<!-- APP -->
 <div class="main-app" id="app">
-    <div id="pdf-area">
-        <div class="app-title-header">Control de cumplimiento de rutina de limpieza AE</div>
-        
-        <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
-            <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
-            <div class="d-flex align-items-center gap-1">
-                <button id="google-btn" class="btn btn-google-drive" onclick="vincularGoogle()">DRIVE</button>
-                <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
-                <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
+    <div class="app-title-header">Control de cumplimiento de rutina de limpieza AE</div>
+    
+    <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
+        <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-white extra-small" style="font-size: 0.6rem;">
+                <span id="sync-status-icon"></span> DRIVE
             </div>
-        </nav>
+            <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
+            <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
+        </div>
+    </nav>
 
-        <div class="container-fluid py-2" id="main-content">
-            <div class="row g-2 mb-2">
-                <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
-                <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
-            </div>
+    <div class="container-fluid py-2" id="main-content">
+        <div class="row g-2 mb-2">
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
+        </div>
 
-            <div class="legend-card text-center no-print">
-                <span class="fw-bold" style="font-size: 0.65rem;">A:Pisos B:Vidrios C:Bolseo D:Hidro/Barr.</span>
+        <div class="row g-2 mb-2 no-print">
+            <div class="col-6">
+                <select id="view-user" class="form-select form-select-sm mb-1" onchange="renderMatriz()">
+                    <option value="Tello Victoria">Victoria</option>
+                    <option value="Torres Ramón">Ramón</option>
+                </select>
             </div>
+            <div class="col-6">
+                <input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()">
+            </div>
+        </div>
 
-            <div class="row g-2 mb-2 no-print">
-                <div class="col-5">
-                    <select id="view-user" class="form-select form-select-sm mb-1" onchange="renderMatriz()"></select>
-                    <input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()">
-                </div>
-                <div class="col-7 d-flex gap-1 align-items-end">
-                    <button class="btn btn-success btn-sm w-100 fw-bold" onclick="exportarExcel()">EXCEL</button>
-                    <button class="btn btn-danger btn-sm w-100 fw-bold" onclick="exportarPDF()">PDF</button>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-sm align-middle text-center" id="main-table">
-                    <thead id="matriz-head"></thead>
-                    <tbody id="matriz-body"></tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle text-center" id="main-table">
+                <thead id="matriz-head"></thead>
+                <tbody id="matriz-body"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Historial -->
     <div class="container-fluid py-2" id="historial-section">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold m-0">Historial de Registros</h6>
+            <h6 class="fw-bold m-0">Historial Completo</h6>
             <button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button>
         </div>
-        <div class="table-responsive">
-            <table class="table table-striped table-sm" style="font-size: 0.7rem;">
-                <thead><tr><th>Fecha</th><th>Sector</th><th>Sup.</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Op</th></tr></thead>
-                <tbody id="historial-body-list"></tbody>
-            </table>
-        </div>
+        <div id="historial-body-list" class="list-group"></div>
     </div>
 </div>
 
@@ -153,57 +134,65 @@
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
     let activeUser = "";
     let accessToken = null, driveFileId = null;
+    let tokenClient;
 
-    function toggleAdminPass() {
-        document.getElementById('admin-field').classList.toggle('d-none', document.getElementById('user-input').value !== "Administrador");
-    }
+    document.getElementById('user-input').onchange = function() {
+        document.getElementById('admin-field').classList.toggle('d-none', this.value !== "Administrador");
+    };
 
     function manejarLogin() {
         const u = document.getElementById('user-input').value;
-        if (u === "Administrador" && document.getElementById('pass-maestro').value !== "admin.ae") { alert("Incorrecto"); return; }
+        if (u === "Administrador" && document.getElementById('pass-maestro').value !== "admin.ae") { alert("Contraseña incorrecta"); return; }
         activeUser = u;
+        tokenClient.requestAccessToken({ prompt: 'consent', login_hint: 'areaexterna.dohm@gmail.com' });
+    }
+
+    function entrarApp() {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         document.getElementById('active-user-display').innerText = activeUser;
-        const sel = document.getElementById('view-user');
-        sel.innerHTML = '<option value="Tello Victoria">Victoria</option><option value="Torres Ramón">Ramón</option>';
-        sel.value = (u === "Administrador") ? "Tello Victoria" : u;
+        document.getElementById('view-user').value = (activeUser === "Administrador") ? "Tello Victoria" : activeUser;
         document.getElementById('data-date').valueAsDate = new Date();
         renderMatriz();
     }
 
-    let tokenClient;
     window.onload = () => {
         gapi.load('client', () => gapi.client.init({}));
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
-            callback: (resp) => { accessToken = resp.access_token; document.getElementById('google-btn').innerText = "✅ DRIVE OK"; syncDriveData(); },
+            callback: (resp) => {
+                if (resp.access_token) {
+                    accessToken = resp.access_token;
+                    document.getElementById('sync-status-icon').classList.add('sync-active');
+                    syncDriveData().then(() => entrarApp());
+                }
+            },
         });
     };
-    function vincularGoogle() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
     async function syncDriveData() {
-        const r = await fetch('https://www.googleapis.com/drive/v3/files?q=name="rutina_ae_vFinal.json" and trashed=false', { headers: { Authorization: `Bearer ${accessToken}` } });
-        const d = await r.json();
-        if (d.files && d.files.length > 0) {
-            driveFileId = d.files[0].id;
-            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, { headers: { Authorization: `Bearer ${accessToken}` } });
-            db = await res.json(); renderMatriz();
-        }
+        try {
+            const r = await fetch('https://www.googleapis.com/drive/v3/files?q=name="rutina_ae_vFinal.json" and trashed=false', { headers: { Authorization: `Bearer ${accessToken}` } });
+            const d = await r.json();
+            if (d.files && d.files.length > 0) {
+                driveFileId = d.files[0].id;
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, { headers: { Authorization: `Bearer ${accessToken}` } });
+                db = await res.json();
+            }
+        } catch(e) { console.error(e); }
     }
 
     async function saveToDrive() {
         if (!accessToken) return;
-        const content = JSON.stringify(db);
         const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([content], { type: 'application/json' }));
+        form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
         fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
         });
@@ -215,21 +204,18 @@
         const viewSup = document.getElementById('view-user').value;
         const today = new Date(); today.setHours(0,0,0,0);
         const isReadonly = (activeUser !== "Administrador" && activeUser !== viewSup);
-        
-        // Fecha inicio Matriz = Fecha seleccionada + 1
-        const startDate = new Date(selectedDate);
-        startDate.setDate(selectedDate.getDate() + 1);
+        const startDate = new Date(selectedDate); startDate.setDate(selectedDate.getDate() + 1);
 
-        // ENCABEZADO: Nombre del día + Fecha
         head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-col">O. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">O. Sem</th>${[0,1,2,3,4,5,6].map(i => {
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
-            let nombreDia = diasSemana[dt.getDay()];
-            return `<th>${nombreDia}<br>${dt.getDate()}/${dt.getMonth()+1}</th>`;
+            return `<th>${diasNom[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}</th>`;
         }).join('')}</tr>`;
 
         body.innerHTML = '';
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
+            const sectorKey = `${sec}_${viewSup}`;
+            
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -247,13 +233,27 @@
                 if(d.op > 0 || d.A!==null) vW++;
                 ['A','B','C','D'].forEach(t => { if(d[t]===true) okW++; });
                 const bloqueado = (activeUser !== "Administrador") && (isReadonly || dt < today);
-                dayCells += `<td><div class="task-container ${bloqueado ? 'day-locked' : ''}"><div class="operarios-num" onclick="toggleOp('${k}')">${d.op}</div><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
+                dayCells += `<td><div class="day-cell-container ${bloqueado ? 'day-locked' : ''}"><span class="label-mini">Op:</span><div class="op-box" onclick="toggleOp('${k}')">${d.op}</div><span class="label-mini">Tareas</span><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
             }
 
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-label">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-label">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
+            const noteClass = db['note_'+sectorKey] ? 'has-note' : '';
+
+            body.innerHTML += `<tr>
+                <td class="sector-name ${noteClass}">${sec} <button class="btn-note" onclick="editNote('${sectorKey}')">📝</button>
+                    <span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span>
+                    <span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span>
+                </td>
+                <td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}
+            </tr>`;
         });
         updateStats(startDate);
+    }
+
+    function editNote(sectorKey) {
+        const current = db['note_'+sectorKey] || "";
+        const n = prompt("Novedades o Alertas para este sector:", current);
+        if(n !== null) { db['note_'+sectorKey] = n; save(); }
     }
 
     function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(); }
@@ -262,18 +262,17 @@
 
     function updateStats(startDate) {
         const viewSup = document.getElementById('view-user').value;
-        let s = { ok:0 }, m = { ok:0 };
-        const totalS = sectores.length * 28, totalM = sectores.length * 120;
+        let s = { ok:0, a:0, b:0, c:0, d:0 }, m = { ok:0, a:0, b:0, c:0, d:0 };
         sectores.forEach(sec => {
             for(let i=0; i<7; i++){
-                let d = new Date(startDate); d.setDate(startDate.getDate() + i);
-                let k = `${sec}_${d.toISOString().split('T')[0]}_${viewSup}`;
-                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) s.ok++; });
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
+                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { s.ok++; s[t.toLowerCase()]++; } });
             }
             for(let j=0; j<30; j++){
-                let d = new Date(startDate); d.setDate(startDate.getDate() + j);
-                let k = `${sec}_${d.toISOString().split('T')[0]}_${viewSup}`;
-                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) m.ok++; });
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
+                let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
+                if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) { m.ok++; m[t.toLowerCase()]++; } });
             }
         });
         const f = (id, ok, total) => {
@@ -281,26 +280,10 @@
             const el = document.getElementById(id); el.innerText = pct + "%";
             el.className = pct < 60 ? 'percent-val pct-low' : 'percent-val pct-high';
         };
+        const totalS = sectores.length * 28, totalM = sectores.length * 120;
+        const baseS = sectores.length * 7, baseM = sectores.length * 30;
         f('ps-total', s.ok, totalS); f('pm-total', m.ok, totalM);
-        ['a','b','c','d'].forEach(t => {
-            let okS = 0, okM = 0;
-            sectores.forEach(sec => {
-                for(let i=0; i<7; i++){
-                   let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
-                   let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
-                   if(db[k] && db[k][t.toUpperCase()]===true) okS++;
-                }
-                for(let j=0; j<30; j++){
-                   let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
-                   let k = `${sec}_${dt.toISOString().split('T')[0]}_${viewSup}`;
-                   if(db[k] && db[k][t.toUpperCase()]===true) okM++;
-                }
-            });
-            let elS = document.getElementById('ps-'+t), elM = document.getElementById('pm-'+t);
-            let pS = Math.round((okS/(sectores.length*7))*100)||0, pM = Math.round((okM/(sectores.length*30))*100)||0;
-            elS.innerText = pS+"%"; elS.className = pS < 60 ? 'pct-low' : 'pct-high';
-            elM.innerText = pM+"%"; elM.className = pM < 60 ? 'pct-low' : 'pct-high';
-        });
+        ['a','b','c','d'].forEach(t => { f('ps-'+t, s[t], baseS); f('pm-'+t, m[t], baseM); });
     }
 
     function mostrarHistorial() {
@@ -308,26 +291,12 @@
         document.getElementById('historial-section').style.display = 'block';
         const list = document.getElementById('historial-body-list');
         list.innerHTML = "";
-        Object.keys(db).sort().reverse().forEach(k => {
+        Object.keys(db).filter(k => k.includes('_20')).sort().reverse().forEach(k => {
             const p = k.split('_'); const d = db[k];
-            list.innerHTML += `<tr><td>${p[1]}</td><td>${p[0]}</td><td>${p[2]}</td><td class="${d.A?'text-success':'text-danger'}">${d.A?'OK':'F'}</td><td class="${d.B?'text-success':'text-danger'}">${d.B?'OK':'F'}</td><td class="${d.C?'text-success':'text-danger'}">${d.C?'OK':'F'}</td><td class="${d.D?'text-success':'text-danger'}">${d.D?'OK':'F'}</td><td>${d.op}</td></tr>`;
+            list.innerHTML += `<div class="list-group-item"><b>${p[1]}</b> - ${p[0]} (${p[2]})<br>Tareas: A:${d.A?'OK':'F'} B:${d.B?'OK':'F'} C:${d.C?'OK':'F'} D:${d.D?'OK':'F'} | Op: ${d.op}</div>`;
         });
     }
     function cerrarHistorial() { document.getElementById('main-content').style.display = 'block'; document.getElementById('historial-section').style.display = 'none'; }
-
-    function exportarExcel() {
-        let rows = [["Sector", "Fecha", "Supervisor", "A", "B", "C", "D", "Operarios"]];
-        Object.keys(db).forEach(k => { let p = k.split('_'); rows.push([p[0], p[1], p[2], db[k].A?'OK':'F', db[k].B?'OK':'F', db[k].C?'OK':'F', db[k].D?'OK':'F', db[k].op]); });
-        XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet(rows), "Reporte").window?.XLSX.writeFile(`Rutina_${activeUser}.xlsx`);
-    }
-
-    function exportarPDF() {
-        const loader = document.getElementById('loader-pdf'); loader.style.display = 'flex';
-        const element = document.getElementById('pdf-area').cloneNode(true);
-        element.querySelectorAll('.no-print, button').forEach(e => e.remove());
-        const opt = { margin: 0.2, filename: `Reporte_AE_${activeUser}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 1.5, useCORS: true }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } };
-        html2pdf().from(element).set(opt).save().then(() => loader.style.display = 'none').catch(() => loader.style.display = 'none');
-    }
     setInterval(saveToDrive, 60000);
 </script>
 </body>
