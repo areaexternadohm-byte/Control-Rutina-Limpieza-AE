@@ -1,21 +1,23 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Control Operativo</title>
+    <title>Rutina AE - Gestión & Dashboard</title>
+    <!-- Librerías Externas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
             --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
-            --light-bg: #f8f9fa;
+            --light-bg: #f8f9fa; --g-blue: #4285F4; --g-red: #EA4335; --g-yellow: #FBBC04; --g-green: #34A853;
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.82rem; }
         .app-title-header { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 0.85rem; padding: 10px; background-color: var(--primary); text-align: center; }
 
         /* Login */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
         .main-app, #historial-section { display: none; }
 
         /* Semáforo */
@@ -28,19 +30,16 @@
         .percent-val { font-size: 1.1rem; font-weight: bold; }
         .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 2px 5px; }
 
-        /* Tabla */
+        /* Matriz */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
-        .sector-name { font-weight: 700; width: 85px !important; min-width: 85px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; position: relative; }
+        .sector-name { font-weight: 700; width: 78px !important; min-width: 78px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; position: relative; }
         .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
         
-        .btn-note { font-size: 0.7rem; padding: 0; color: var(--accent); cursor: pointer; border: none; background: none; float: right; }
-        .has-note::after { content: '•'; color: #f1c40f; font-size: 20px; position: absolute; top: -5px; left: 2px; }
-
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
-        /* Tareas */
+        /* Tareas y Op */
         .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
         .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
         .label-mini { font-size: 0.52rem; color: #999; text-transform: uppercase; }
@@ -53,18 +52,23 @@
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
+        /* Icono de Notas */
+        .btn-note { font-size: 0.7rem; padding: 0; color: var(--accent); cursor: pointer; border: none; background: none; float: right; }
+        .has-note::after { content: '•'; color: #f1c40f; font-size: 20px; position: absolute; top: -5px; left: 2px; }
+
         #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
         .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
     </style>
 </head>
 <body>
 
+<!-- Pantalla de Login -->
 <div id="login-screen">
     <div class="login-card shadow">
-        <h4 class="fw-bold mb-4" style="color: var(--primary)">Acceso Rutina AE</h4>
+        <h4 class="fw-bold mb-4" style="color: var(--primary)">Control de cumplimiento de rutina de limpieza AE</h4>
         <div class="text-start mb-3">
-            <label class="small fw-bold">Usuario:</label>
-            <select id="user-input" class="form-select">
+            <label class="small fw-bold">Supervisor:</label>
+            <select id="user-input" class="form-select" onchange="toggleAdminPass()">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
                 <option value="Administrador">👑 Administrador</option>
@@ -79,14 +83,15 @@
     </div>
 </div>
 
+<!-- Aplicación Principal -->
 <div class="main-app" id="app">
-    <div class="app-title-header">Control de cumplimiento de rutina de limpieza AE</div>
+    <div class="app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
     
     <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
         <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center gap-2">
             <div class="text-white extra-small" style="font-size: 0.6rem;">
-                <span id="sync-status-icon"></span> DRIVE
+                <span id="sync-status-icon"></span> PLANILLA
             </div>
             <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
             <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
@@ -99,15 +104,18 @@
             <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
         </div>
 
-        <div class="row g-2 mb-2 no-print">
+        <div class="row g-2 mb-3 no-print">
             <div class="col-6">
                 <select id="view-user" class="form-select form-select-sm mb-1" onchange="renderMatriz()">
                     <option value="Tello Victoria">Victoria</option>
                     <option value="Torres Ramón">Ramón</option>
                 </select>
-            </div>
-            <div class="col-6">
                 <input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()">
+            </div>
+            <div class="col-6 d-flex flex-column gap-1">
+                <div class="legend-card text-center py-1 mb-0" style="font-size: 0.55rem; background: #fff;">
+                    A:Pisos B:Vidrios C:Bolseo D:Hidro/Barr.
+                </div>
             </div>
         </div>
 
@@ -117,33 +125,37 @@
                 <tbody id="matriz-body"></tbody>
             </table>
         </div>
+        <p class="text-center mt-3 text-muted" style="font-size: 10px;">Victoria Tello y Ramón Torres</p>
     </div>
 
+    <!-- Sección de Historial -->
     <div class="container-fluid py-2" id="historial-section">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold m-0">Historial Completo</h6>
+            <h6 class="fw-bold m-0">Historial Reciente</h6>
             <button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button>
         </div>
-        <div id="historial-body-list" class="list-group"></div>
+        <div id="historial-body-list" class="list-group shadow-sm"></div>
     </div>
 </div>
 
+<!-- Scripts de Google -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby-Ym6fO6R3G_tXm89vE_I7kK7m7Y0S6Y8S6Y8S6Y/exec'; // <--- PEGA TU URL DE APPS SCRIPT AQUÍ
+    
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
     let activeUser = "";
-    let accessToken = null, driveFileId = null;
-    let tokenClient;
+    let accessToken = null, driveFileId = null, tokenClient;
 
-    document.getElementById('user-input').onchange = function() {
-        document.getElementById('admin-field').classList.toggle('d-none', this.value !== "Administrador");
-    };
+    function toggleAdminPass() {
+        document.getElementById('admin-field').classList.toggle('d-none', document.getElementById('user-input').value !== "Administrador");
+    }
 
     function manejarLogin() {
         const u = document.getElementById('user-input').value;
@@ -187,15 +199,34 @@
         } catch(e) { console.error(e); }
     }
 
-    async function saveToDrive() {
-        if (!accessToken) return;
-        const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
-        fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
-        });
+    async function save(key) {
+        localStorage.setItem('db_ae_vFinal', JSON.stringify(db));
+        renderMatriz();
+
+        // 1. Sincronizar archivo JSON en Drive
+        if (accessToken) {
+            const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
+            fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
+            });
+        }
+
+        // 2. Sincronizar con Google Sheet Planilla
+        if (WEB_APP_URL && key.includes('_20')) {
+            const parts = key.split('_');
+            const dataToSheet = {
+                fecha: parts[1],
+                sector: parts[0],
+                supervisor: parts[2],
+                A: db[key].A, B: db[key].B, C: db[key].C, D: db[key].D,
+                op: db[key].op,
+                novedad: db['note_' + parts[0] + '_' + parts[2]] || ""
+            };
+            fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataToSheet) });
+        }
     }
 
     function renderMatriz() {
@@ -238,27 +269,20 @@
 
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
             const noteClass = db['note_'+sectorKey] ? 'has-note' : '';
-
-            body.innerHTML += `<tr>
-                <td class="sector-name ${noteClass}">${sec} <button class="btn-note" onclick="editNote('${sectorKey}')">📝</button>
-                    <span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span>
-                    <span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span>
-                </td>
-                <td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}
-            </tr>`;
+            body.innerHTML += `<tr><td class="sector-name ${noteClass}">${sec}<button class="btn-note" onclick="editNote('${sectorKey}')">📝</button><span class="sector-perc-stack">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
 
     function editNote(sectorKey) {
+        if(activeUser !== "Administrador" && !sectorKey.endsWith(activeUser)) return;
         const current = db['note_'+sectorKey] || "";
-        const n = prompt("Novedades o Alertas para este sector:", current);
-        if(n !== null) { db['note_'+sectorKey] = n; save(); }
+        const n = prompt("Novedad para este sector:", current);
+        if(n !== null) { db['note_'+sectorKey] = n; save('dummy_save'); }
     }
 
-    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(); }
-    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id].op) + 1) % 5; save(); }
-    function save() { localStorage.setItem('db_ae_vFinal', JSON.stringify(db)); renderMatriz(); saveToDrive(); }
+    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
+    function toggleOp(id) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id].op = (parseInt(db[id].op) + 1) % 5; save(id); }
 
     function updateStats(startDate) {
         const viewSup = document.getElementById('view-user').value;
@@ -283,7 +307,10 @@
         const totalS = sectores.length * 28, totalM = sectores.length * 120;
         const baseS = sectores.length * 7, baseM = sectores.length * 30;
         f('ps-total', s.ok, totalS); f('pm-total', m.ok, totalM);
-        ['a','b','c','d'].forEach(t => { f('ps-'+t, s[t], baseS); f('pm-'+t, m[t], baseM); });
+        ['a','b','c','d'].forEach(t => { 
+            document.getElementById('ps-'+t).innerText = (Math.round((s[t]/baseS)*100)||0)+"%";
+            document.getElementById('pm-'+t).innerText = (Math.round((m[t]/baseM)*100)||0)+"%";
+        });
     }
 
     function mostrarHistorial() {
@@ -291,13 +318,15 @@
         document.getElementById('historial-section').style.display = 'block';
         const list = document.getElementById('historial-body-list');
         list.innerHTML = "";
-        Object.keys(db).filter(k => k.includes('_20')).sort().reverse().forEach(k => {
+        Object.keys(db).filter(k => k.includes('_20')).sort().reverse().slice(0,50).forEach(k => {
             const p = k.split('_'); const d = db[k];
             list.innerHTML += `<div class="list-group-item"><b>${p[1]}</b> - ${p[0]} (${p[2]})<br>Tareas: A:${d.A?'OK':'F'} B:${d.B?'OK':'F'} C:${d.C?'OK':'F'} D:${d.D?'OK':'F'} | Op: ${d.op}</div>`;
         });
     }
     function cerrarHistorial() { document.getElementById('main-content').style.display = 'block'; document.getElementById('historial-section').style.display = 'none'; }
-    setInterval(saveToDrive, 60000);
+    
+    // Auto-save Drive cada minuto
+    setInterval(() => { if(accessToken) save('dummy_timer'); }, 60000);
 </script>
 </body>
 </html>
