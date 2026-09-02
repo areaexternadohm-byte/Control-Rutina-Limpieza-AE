@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Gestión en Tiempo Real</title>
+    <title>Rutina AE - Control Diario</title>
     <!-- Librerías Críticas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -22,28 +22,36 @@
         .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 95%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
         .main-app, #historial-section { display: none; }
 
-        /* Semáforo */
+        /* Semáforo de colores */
         .pct-low { color: var(--fail) !important; font-weight: 800; }
         .pct-high { color: var(--ok) !important; font-weight: 800; }
 
         /* Stats */
         .stats-card { background: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; border-top: 4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; border-bottom: 2px solid #eee; padding-bottom: 4px; text-align: center; }
+        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; text-align: center; }
         .percent-val { font-size: 1.1rem; font-weight: bold; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f2f2f2; padding: 4px 5px; font-size: 0.72rem; }
+        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 2px 5px; }
 
-        /* Matriz */
+        /* Tabla */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
-        .sector-name { font-weight: 700; width: 85px !important; min-width: 85px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
-        .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
         
+        .sector-name { 
+            font-weight: 700; width: 78px !important; min-width: 78px !important; 
+            background: #f8f9fa; border-left: 4px solid transparent; 
+            text-align: left; padding: 5px !important; color: var(--primary); font-size: 0.68rem;
+            word-wrap: break-word; line-height: 1.1;
+        }
+        .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
+
+        /* Columnas Resumen */
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
-        /* Celdas e Interacción */
+        /* Celda Diaria Interactiva */
         .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
         .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
+        .label-mini { font-size: 0.52rem; color: #999; text-transform: uppercase; margin: 0; }
         .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; background: #fff; }
         .task-cell { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 0.5px solid #eee; background: white; height: 20px; cursor: pointer; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
@@ -53,19 +61,24 @@
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
+        .btn-dashboard { background-color: var(--looker-blue) !important; color: white !important; font-weight: 800; font-size: 0.65rem; height: 31px; border: none; }
+        .btn-google-drive { background: white !important; border: 2px solid #ddd; border-radius: 5px; font-weight: 700; font-size: 0.6rem; padding: 4px 8px; display: flex; align-items: center; gap: 5px; }
         #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
         .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
+        
         .btn-date-comment { display: inline-block; padding: 1px 3px; font-size: 10px; background: var(--warning); border: 1px solid #d4ac0d; border-radius: 3px; cursor: pointer; margin-top: 2px; color: #000; }
         .btn-date-comment.has-content { background: var(--ok); color: white; }
+        
+        .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<!-- MODAL NOTAS -->
+<!-- MODAL COMENTARIOS -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"><h6 class="modal-title fw-bold">Notas: <span id="modal-date-display"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold">Notas del día: <span id="modal-date-display"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body"><textarea id="daily-comment-text" class="form-control" rows="4"></textarea></div>
             <div class="modal-footer"><button type="button" class="btn btn-primary w-100" onclick="saveDailyComment()">GUARDAR</button></div>
         </div>
@@ -89,18 +102,18 @@
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
         <button class="btn btn-primary w-100 fw-bold py-2 shadow" onclick="manejarLogin()">INICIAR</button>
-        <p class="small text-muted mt-3">Cuenta: <b>areaexterna.dohm@gmail.com</b></p>
+        <p class="small text-muted mt-3">Sincronización: <b>areaexterna.dohm@gmail.com</b></p>
     </div>
 </div>
 
-<!-- APP PRINCIPAL -->
+<!-- APP -->
 <div class="main-app" id="app">
     <div class="app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
     
     <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
         <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center gap-2">
-            <div class="text-white extra-small" style="font-size: 0.6rem;"><span id="sync-status-icon"></span> DRIVE</div>
+            <div class="text-white extra-small" style="font-size: 0.6rem;"><span id="sync-status-icon"></span> PLANILLA</div>
             <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
             <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
         </div>
@@ -108,13 +121,18 @@
 
     <div class="container-fluid py-2" id="main-content">
         <div class="row g-2 mb-2">
-            <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span class="fw-bold">Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A: Pisos/Rec.</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B: Vidrios/Par.</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C: Bolseo/Segr.</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D: Hidro/Barr.</span><span id="ps-d">0%</span></div></div></div>
-            <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span class="fw-bold">Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A: Pisos/Rec.</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B: Vidrios/Par.</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C: Bolseo/Segr.</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D: Hidro/Barr.</span><span id="pm-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
+        </div>
+
+        <div class="legend-card text-center no-print">
+            <span class="fw-bold" style="font-size: 0.62rem;">A:Pisos B:Vidrios C:Bolseo D:Hidro/Barr.</span>
         </div>
 
         <div class="row g-2 mb-2 no-print align-items-center">
-            <div class="col-6"><select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()"><option value="Tello Victoria">Victoria</option><option value="Torres Ramón">Ramón</option></select></div>
-            <div class="col-6"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
+            <div class="col-4"><select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()"><option value="Tello Victoria">Victoria</option><option value="Torres Ramón">Ramón</option></select></div>
+            <div class="col-4"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
+            <div class="col-4"><button class="btn btn-sm w-100 btn-dashboard rounded shadow-sm" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
         </div>
 
         <div class="table-responsive">
@@ -125,9 +143,10 @@
         </div>
     </div>
 
+    <!-- Historial -->
     <div class="container-fluid py-2" id="historial-section">
-        <div class="d-flex justify-content-between align-items-center mb-2"><h6>Historial Reciente</h6><button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button></div>
-        <div id="historial-body-list" class="list-group shadow-sm"></div>
+        <div class="d-flex justify-content-between align-items-center mb-2"><h6>Historial</h6><button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button></div>
+        <div id="historial-body-list" class="list-group"></div>
     </div>
 </div>
 
@@ -136,12 +155,11 @@
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzD4fRe08h2a8yNqcHwXY-qxEmiRmlezpGKfylApq7skJI2qoj4CvhTai-VZYQq5UNsqQ/exec';
-    
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby-Ym6fO6R3G_tXm89vE_I7kK7m7Y0S6Y8S6Y8S6Y/exec';
     const sectores = ["ALDE", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIDER", "TACE", "TAEL"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
-    let db = JSON.parse(localStorage.getItem('db_ae_vFinalPlanilla')) || {};
+    let db = JSON.parse(localStorage.getItem('db_ae_vFinal')) || {};
     let activeUser = "", accessToken = null, driveFileId = null, tokenClient;
 
     document.getElementById('user-input').onchange = function() {
@@ -161,9 +179,10 @@
         document.getElementById('active-user-display').innerText = activeUser;
         document.getElementById('view-user').value = (activeUser === "Administrador") ? "Tello Victoria" : activeUser;
         
-        // CORRECCIÓN: Siempre establecer fecha de HOY al entrar
+        // ESTABLECER FECHA DE HOY SIEMPRE AL INICIO
         const hoy = new Date();
         document.getElementById('data-date').value = hoy.toISOString().split('T')[0];
+        
         renderMatriz();
     }
 
@@ -188,11 +207,12 @@
     }
 
     async function save(key) {
-        localStorage.setItem('db_ae_vFinalPlanilla', JSON.stringify(db));
+        localStorage.setItem('db_ae_vFinal', JSON.stringify(db));
         renderMatriz();
         if (accessToken) {
+            const metadata = { name: 'rutina_ae_vFinal.json', mimeType: 'application/json' };
             const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify({ name: 'rutina_ae_vFinal.json', mimeType: 'application/json' })], { type: 'application/json' }));
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
             fetch(driveFileId ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                 method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
@@ -200,29 +220,23 @@
         }
         if (WEB_APP_URL && key && key.includes('_20')) {
             const p = key.split('_');
-            const dataToSheet = {
-                fecha: p[1], sector: p[0], supervisor: p[2],
-                A: db[key].A?'OK':'F', B: db[key].B?'OK':'F', C: db[key].C?'OK':'F', D: db[key].D?'OK':'F',
-                op: db[key].op,
-                vSem: document.getElementById('vsem_'+p[0]).innerText,
-                vMes: document.getElementById('vmes_'+p[0]).innerText,
-                opSem: document.getElementById('opsem_'+p[0]).innerText,
-                opMes: document.getElementById('opmes_'+p[0]).innerText,
-                novedad: db['comment_'+p[1]+'_'+p[2]] || ""
-            };
+            const dataToSheet = { fecha: p[1], sector: p[0], supervisor: p[2], A: db[key].A?'OK':'F', B: db[key].B?'OK':'F', C: db[key].C?'OK':'F', D: db[key].D?'OK':'F', op: db[key].op, novedad: db['comment_'+p[1]+'_'+p[2]]||"" };
             fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataToSheet) });
         }
     }
 
     function renderMatriz() {
         const head = document.getElementById('matriz-head'), body = document.getElementById('matriz-body');
-        const startDate = new Date(document.getElementById('data-date').value);
+        const selectedDate = new Date(document.getElementById('data-date').value);
         const viewSup = document.getElementById('view-user').value;
         const today = new Date(); today.setHours(0,0,0,0);
         const isReadonly = (activeUser !== "Administrador" && activeUser !== viewSup);
 
-        // CORRECCIÓN: La matriz empieza exactamente en la fecha seleccionada
-        head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-mes-col">Op. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">Op. Sem</th>${[0,1,2,3,4,5,6].map(i => {
+        // FECHA DE INICIO DE MATRIZ = FECHA SELECCIONADA
+        const startDate = new Date(selectedDate);
+        // Quité el "startDate.setDate(selectedDate.getDate() + 1)" para que Día 1 sea Hoy o el seleccionado.
+
+        head.innerHTML = `<tr><th>Sector</th><th class="summary-col">V. Mes</th><th class="op-col">O. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">O. Sem</th>${[0,1,2,3,4,5,6].map(i => {
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
             let ds = dt.toISOString().split('T')[0];
             let hasC = db['comment_'+ds+'_'+viewSup] ? 'has-content' : '';
@@ -252,7 +266,7 @@
                 dayCells += `<td><div class="day-cell-container ${bloqueado ? 'day-locked' : ''}"><span class="label-mini">Op:</span><div class="op-box" onclick="toggleOp('${k}')">${d.op}</div><span class="label-mini">Tareas</span><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
             }
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col" id="vmes_${sec}">${vM}</td><td class="op-mes-col" id="opmes_${sec}">${sumOpM}</td><td class="summary-col" id="vsem_${sec}">${vW}</td><td class="op-col" id="opsem_${sec}">${sumOpW}</td>${dayCells}</tr>`;
+            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
