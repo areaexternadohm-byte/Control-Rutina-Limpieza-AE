@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Gestión Avanzada</title>
-    <!-- Librerías Críticas -->
+    <title>Rutina AE - Gestión Integral</title>
+    <!-- Librerías -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <!-- Script de Bootstrap al final para evitar bloqueos -->
     <style>
         :root { 
             --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
@@ -34,18 +33,20 @@
 
         /* Matriz */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
-        .sector-name { font-weight: 700; width: 78px !important; min-width: 78px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
+        th { background-color: var(--light-bg) !important; color: #000 !important; text-align: center; font-size: 0.55rem; border: 1px solid #dee2e6 !important; vertical-align: middle; }
+        .sector-name { font-weight: 700; width: 85px !important; min-width: 85px !important; background: #f8f9fa; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
         .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
         
+        /* Botón Comentario */
+        .btn-date-comment { display: inline-block; padding: 2px 5px; font-size: 12px; background: var(--warning); border: 1px solid #d4ac0d; border-radius: 4px; cursor: pointer; margin-top: 4px; color: #000; border-bottom: 2px solid #b7950b; }
+        .btn-date-comment.has-content { background: var(--ok); color: white; border-color: #1e8449; }
+
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
-        /* Celdas Operarios y Tareas */
+        /* Tareas e Interacción */
         .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
-        .op-box { font-size: 0.65rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1.5px solid #e67e22; padding: 0 5px; border-radius: 4px; background: #fff; min-width: 22px; text-align: center; }
-        .label-mini { font-size: 0.52rem; color: #999; text-transform: uppercase; }
-        
+        .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
         .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; background: #fff; }
         .task-cell { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 0.5px solid #eee; background: white; height: 20px; cursor: pointer; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
@@ -55,24 +56,38 @@
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
         .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
-        .btn-google-drive { background: white !important; border: 2px solid #ddd; border-radius: 5px; font-weight: 700; font-size: 0.6rem; padding: 4px 8px; display: flex; align-items: center; gap: 5px; }
-        .btn-dashboard { background-color: var(--looker-blue) !important; color: white !important; font-weight: 800; font-size: 0.6rem; height: 31px; border: none; }
         #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
         .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
-        .btn-date-comment { display: inline-block; padding: 1px 3px; font-size: 10px; background: var(--warning); border: 1px solid #d4ac0d; border-radius: 3px; cursor: pointer; margin-top: 2px; color: #000; }
-        .btn-date-comment.has-content { background: var(--ok); color: white; }
-        
-        .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
+<!-- MODAL COMENTARIOS -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold" id="commentModalLabel">Comentario: <span id="modal-date-display"></span></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <textarea id="daily-comment-text" class="form-control" rows="5" placeholder="Escriba las alertas detectadas hoy..."></textarea>
+                <div id="modal-readonly-msg" class="text-danger small mt-2 d-none">Modo lectura: No se puede guardar en fechas pasadas.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-save-comment" class="btn btn-primary w-100" onclick="saveDailyComment()">GUARDAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card shadow">
         <h4 class="fw-bold mb-4" style="color: var(--primary)">Control Rutina AE</h4>
         <div class="text-start mb-3">
             <label class="small fw-bold">Usuario:</label>
-            <select id="user-input" class="form-select" onchange="toggleAdminPass()">
+            <select id="user-input" class="form-select">
                 <option value="Tello Victoria">Tello Victoria</option>
                 <option value="Torres Ramón">Torres Ramón</option>
                 <option value="Administrador">👑 Administrador</option>
@@ -83,51 +98,31 @@
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
         <button class="btn btn-primary w-100 fw-bold py-2 shadow" onclick="manejarLogin()">INICIAR</button>
-        <p class="small text-muted mt-3">Cuenta: <b>areaexterna.dohm@gmail.com</b></p>
     </div>
 </div>
 
+<!-- APP -->
 <div class="main-app" id="app">
     <div class="app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
-    
     <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
         <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center gap-2">
-            <div class="text-white extra-small" style="font-size: 0.6rem;"><span id="sync-status-icon"></span> DRIVE</div>
+            <div class="text-white extra-small" style="font-size: 0.6rem;"><span id="sync-status-icon"></span> PLANILLA</div>
             <button class="btn btn-sm btn-info text-white fw-bold" onclick="mostrarHistorial()" style="font-size: 0.6rem;">HISTORIAL</button>
             <button class="btn btn-danger btn-sm" onclick="location.reload()">Salir</button>
         </div>
     </nav>
 
     <div class="container-fluid py-2" id="main-content">
-        <!-- Stats -->
         <div class="row g-2 mb-2">
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title">Semanal</div>
-                    <div class="stat-row"><span class="stat-label">TOTAL</span><span id="ps-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Pisos/Rec.</span><span id="ps-a">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Vidrios/Par.</span><span id="ps-b">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Bolseo/Segr.</span><span id="ps-c">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Hidro/Barr.</span><span id="ps-d">0%</span></div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title">Mensual (30d)</div>
-                    <div class="stat-row"><span class="stat-label">TOTAL</span><span id="pm-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Pisos/Rec.</span><span id="pm-a">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Vidrios/Par.</span><span id="pm-b">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Bolseo/Segr.</span><span id="pm-c">0%</span></div>
-                    <div class="stat-row"><span class="stat-label">Hidro/Barr.</span><span id="pm-d">0%</span></div>
-                </div>
-            </div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
         </div>
 
         <div class="row g-2 mb-2 no-print align-items-center">
             <div class="col-4"><select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()"><option value="Tello Victoria">Victoria</option><option value="Torres Ramón">Ramón</option></select></div>
             <div class="col-4"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
-            <div class="col-4"><button class="btn btn-sm w-100 btn-dashboard rounded shadow-sm" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
+            <div class="col-4"><button class="btn btn-sm w-100 btn-info text-white fw-bold rounded shadow-sm" style="background-color: var(--looker-blue) !important; border:none; font-size:0.6rem;" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
         </div>
 
         <div class="table-responsive">
@@ -138,23 +133,21 @@
         </div>
     </div>
 
-    <!-- Historial -->
     <div class="container-fluid py-2" id="historial-section">
         <div class="d-flex justify-content-between align-items-center mb-2"><h6>Historial</h6><button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button></div>
         <div id="historial-body-list" class="list-group"></div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzD4fRe08h2a8yNqcHwXY-qxEmiRmlezpGKfylApq7skJI2qoj4CvhTai-VZYQq5UNsqQ/exec';
-    
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwiHYvD7VUlPJNbLQ-ugefF3kvqpyaox5R6E-yWbxH0qNqt9GA_KBjcatSZW8GnDNuI/exec';
     const sectores = ["ALDE", "ALDE LAV", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "LAFI", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIAC", "SIDER", "TACE", "TAEL"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const creds = { "Tello Victoria": { pass: "victoria.ae", hint: "Torres" }, "Torres Ramón": { pass: "ramon.ae", hint: "Tello" } };
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinalPlanilla')) || {};
     let activeUser = "", accessToken = null, driveFileId = null, tokenClient;
@@ -215,12 +208,17 @@
                 method: driveFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form
             }).then(r => r.json()).then(res => { if(!driveFileId) driveFileId = res.id; });
         }
+        // Sync a planilla si tiene ID de fecha
         if (WEB_APP_URL && key && key.includes('_20')) {
             const p = key.split('_');
             const dataToSheet = {
                 fecha: p[1], sector: p[0], supervisor: p[2],
                 A: db[key].A?'OK':'F', B: db[key].B?'OK':'F', C: db[key].C?'OK':'F', D: db[key].D?'OK':'F',
                 op: db[key].op,
+                vSem: document.getElementById('vsem_'+p[0].replace(/\s/g,'_')).innerText,
+                vMes: document.getElementById('vmes_'+p[0].replace(/\s/g,'_')).innerText,
+                opSem: document.getElementById('opsem_'+p[0].replace(/\s/g,'_')).innerText,
+                opMes: document.getElementById('opmes_'+p[0].replace(/\s/g,'_')).innerText,
                 novedad: db['comment_'+p[1]+'_'+p[2]] || ""
             };
             fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataToSheet) });
@@ -244,6 +242,8 @@
         body.innerHTML = '';
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
+            let secId = sec.replace(/\s/g, '_');
+            
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let kM = `${sec}_${dM.toISOString().split('T')[0]}_${viewSup}`;
@@ -264,34 +264,49 @@
                 dayCells += `<td><div class="day-cell-container ${bloqueado ? 'day-locked' : ''}"><span class="label-mini">Op:</span><div class="op-box" onclick="toggleOp('${k}')">${d.op}</div><span class="label-mini">Tareas</span><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${d[t]===true?'task-ok':d[t]===false?'task-fail':''}" onclick="toggleTask('${k}','${t}')">${t}</div>`).join('')}</div></div></td>`;
             }
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-mes-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
+            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col" id="vmes_${secId}">${vM}</td><td class="op-mes-col" id="opmes_${secId}">${sumOpM}</td><td class="summary-col" id="vsem_${secId}">${vW}</td><td class="op-col" id="opsem_${secId}">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
 
-    // --- LOGICA SELECCIÓN OPERARIOS (PROMPT DESPUÉS DEL 4) ---
-    function toggleOp(id) {
-        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null };
-        let current = parseInt(db[id].op) || 0;
+    function openCommentModal(d) {
+        const viewSup = document.getElementById('view-user').value;
+        const dObj = new Date(d + "T00:00:00"); 
+        const today = new Date(); today.setHours(0,0,0,0);
         
-        if (current < 4) {
-            db[id].op = current + 1;
-        } else {
-            let input = prompt("Ingrese cantidad de operarios (máx 2 dígitos):", current);
-            if (input !== null) {
-                let num = parseInt(input);
-                if (!isNaN(num) && num >= 0 && num <= 99) {
-                    db[id].op = num;
-                } else {
-                    alert("Por favor ingrese un número entre 0 y 99");
-                }
-            }
-        }
-        save(id);
+        document.getElementById('modal-date-display').innerText = d;
+        document.getElementById('daily-comment-text').value = db['comment_'+d+'_'+viewSup] || "";
+        
+        const isPast = (dObj < today);
+        const canEdit = (activeUser === "Administrador" || (!isPast && activeUser === viewSup));
+        
+        document.getElementById('btn-save-comment').classList.toggle('d-none', !canEdit);
+        document.getElementById('modal-readonly-msg').classList.toggle('d-none', canEdit);
+        document.getElementById('daily-comment-text').readOnly = !canEdit;
+
+        const myModal = new bootstrap.Modal(document.getElementById('commentModal'));
+        myModal.show();
+    }
+
+    function saveDailyComment() {
+        const d = document.getElementById('modal-date-display').innerText, v = document.getElementById('view-user').value;
+        db['comment_'+d+'_'+v] = document.getElementById('daily-comment-text').value;
+        save('comment_sync_trigger_' + d + '_' + v);
+        bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
     }
 
     function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
-    
+    function toggleOp(id) { 
+        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
+        let current = parseInt(db[id].op) || 0;
+        if (current < 4) db[id].op = current + 1;
+        else {
+            let val = prompt("Operarios:", current);
+            if(val !== null) db[id].op = parseInt(val) || 0;
+        }
+        save(id); 
+    }
+
     function updateStats(startDate) {
         const viewSup = document.getElementById('view-user').value;
         let s = { ok:0, a:0, b:0, c:0, d:0 }, m = { ok:0, a:0, b:0, c:0, d:0 };
@@ -322,25 +337,6 @@
         });
     }
 
-    function openCommentModal(d) {
-        const viewSup = document.getElementById('view-user').value;
-        const dObj = new Date(d + "T00:00:00"); const today = new Date(); today.setHours(0,0,0,0);
-        if(activeUser !== "Administrador" && (dObj < today || activeUser !== viewSup)) { alert("Solo lectura"); return; }
-        document.getElementById('modal-date-display').innerText = d;
-        document.getElementById('daily-comment-text').value = db['comment_'+d+'_'+viewSup] || "";
-        new bootstrap.Modal(document.getElementById('commentModal')).show();
-    }
-    function saveDailyComment() {
-        const d = document.getElementById('modal-date-display').innerText, v = document.getElementById('view-user').value;
-        db['comment_'+d+'_'+v] = document.getElementById('daily-comment-text').value;
-        save('comment_sync');
-        bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
-    }
-    function recuperarClave() {
-        const u = document.getElementById('user-input').value;
-        const r = prompt(`¿Apellido de su compañero/a?`);
-        if (r && r.toLowerCase().trim() === creds[u].hint.toLowerCase()) alert(`Tu clave es: ${creds[u].pass}`);
-    }
     function mostrarHistorial() {
         document.getElementById('main-content').style.display = 'none';
         document.getElementById('historial-section').style.display = 'block';
@@ -348,11 +344,10 @@
         list.innerHTML = "";
         Object.keys(db).filter(k => k.includes('_20')).sort().reverse().slice(0,50).forEach(k => {
             const p = k.split('_'); const d = db[k];
-            list.innerHTML += `<div class="list-group-item small"><b>${p[1]}</b> - ${p[0]} (${p[2]}) | A:${d.A?'OK':'F'} B:${d.B?'OK':'F'} C:${d.C?'OK':'F'} D:${d.D?'OK':'F'} | Op: ${d.op}</div>`;
+            list.innerHTML += `<div class="list-group-item small"><b>${p[1]}</b> - ${p[0]} (${p[2]}) | Tareas: A:${d.A?'OK':'F'} B:${d.B?'OK':'F'} C:${d.C?'OK':'F'} D:${d.D?'OK':'F'} | Op: ${d.op}</div>`;
         });
     }
     function cerrarHistorial() { document.getElementById('main-content').style.display = 'block'; document.getElementById('historial-section').style.display = 'none'; }
-    setInterval(() => { if(accessToken) save('timer'); }, 60000);
 </script>
 </body>
 </html>
