@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutina AE - Gestión Integral</title>
-    <!-- Librerías Críticas -->
+    <title>Rutina AE - Gestión en Tiempo Real</title>
+    <!-- Librerías -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -13,7 +13,7 @@
         :root { 
             --primary: #2c3e50; --accent: #3498db; --ok: #27ae60; --fail: #e74c3c; 
             --light-bg: #f8f9fa; --looker-blue: #4285F4; --warning: #f1c40f;
-            --today-bg: #fff59d; /* AMARILLO VIBRANTE para resaltar hoy */
+            --today-highlight: #fff59d; 
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; font-size: 0.82rem; }
         .app-title-header { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 0.85rem; padding: 10px; background-color: var(--primary); text-align: center; }
@@ -33,72 +33,50 @@
         .percent-val { font-size: 1.1rem; font-weight: bold; }
         .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f2f2f2; padding: 4px 5px; font-size: 0.72rem; }
 
-        /* Matriz con Panel Móvil y Sticky */
-        .table-responsive { 
-            background: white; border-radius: 10px; padding: 0; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            max-height: 70vh; overflow: auto; 
-        }
+        /* Matriz Sticky */
+        .table-responsive { background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-height: 70vh; overflow: auto; }
         table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        thead th { position: sticky; top: 0; background-color: #fff !important; z-index: 20; border-bottom: 2px solid #dee2e6 !important; }
+        .sector-name { position: sticky; left: 0; background: #fff !important; z-index: 21; border-right: 2px solid #dee2e6 !important; font-weight: 700; width: 85px !important; min-width: 85px !important; font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important; border-left: 4px solid transparent; }
         
-        thead th { 
-            position: sticky; top: 0; background-color: #fff !important; 
-            z-index: 20; border-bottom: 2px solid #dee2e6 !important; 
-        }
-        
-        .sector-name { 
-            position: sticky; left: 0; background: #fff !important; 
-            z-index: 21; border-right: 2px solid #dee2e6 !important;
-            font-weight: 700; width: 85px !important; min-width: 85px !important; 
-            font-size: 0.68rem; word-wrap: break-word; text-align: left; padding: 5px !important;
-        }
-
-        th { text-align: center; font-size: 0.55rem; border: 1px solid #ddd !important; vertical-align: middle; }
-        .sector-perc-stack { display: block; font-size: 0.52rem; line-height: 1.1; margin-top: 2px; font-weight: normal; }
-        
-        /* RESALTADO DE COLUMNA DE HOY */
-        .today-col { background-color: var(--today-bg) !important; border-left: 2px solid #f39c12 !important; border-right: 2px solid #f39c12 !important; }
-        
+        .today-col { background-color: var(--today-highlight) !important; }
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
         /* Tareas */
         .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
-        .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1.5px solid #e67e22; padding: 0 4px; border-radius: 4px; background: #fff; min-width: 20px; text-align: center; }
-        .label-mini { font-size: 0.52rem; color: #999; text-transform: uppercase; margin: 0; }
+        .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
         .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; background: #fff; }
         .task-cell { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 0.5px solid #eee; background: white; height: 20px; cursor: pointer; user-select: none; }
         .task-ok { background-color: var(--ok) !important; color: white; }
         .task-fail { background-color: var(--fail) !important; color: white; }
         
-        .day-locked { opacity: 0.5; pointer-events: none; background-color: #eee !important; position: relative; }
+        /* BLOQUEO ESTRICTO */
+        .day-locked { opacity: 0.4; pointer-events: none !important; background-color: #f2f2f2 !important; position: relative; }
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
-        .readonly-mode { pointer-events: none !important; opacity: 0.8; }
+        .readonly-mode { pointer-events: none !important; }
 
         .btn-google-drive { background: white !important; border: 2px solid #ddd; border-radius: 5px; font-weight: 700; font-size: 0.6rem; padding: 4px 8px; display: flex; align-items: center; gap: 5px; }
-        .btn-dashboard { background-color: var(--looker-blue) !important; color: white !important; font-weight: 800; font-size: 0.65rem; height: 31px; border: none; }
         #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
         .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
         .btn-date-comment { display: inline-block; padding: 1px 3px; font-size: 10px; background: var(--warning); border: 1px solid #d4ac0d; border-radius: 3px; cursor: pointer; margin-top: 2px; }
         .btn-date-comment.has-content { background: var(--ok); color: white; }
-        .legend-card { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
-<div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
+<div id="commentModal" class="modal fade" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"><h6 class="modal-title fw-bold">Notas del día: <span id="modal-date-display"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold">Nota del día: <span id="modal-date-display"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body"><textarea id="daily-comment-text" class="form-control" rows="4"></textarea></div>
-            <div class="modal-footer"><button type="button" class="btn btn-primary w-100" onclick="saveDailyComment()">GUARDAR NOTA</button></div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary w-100" id="save-comment-btn" onclick="saveDailyComment()">GUARDAR</button></div>
         </div>
     </div>
 </div>
 
 <div id="login-screen">
-    <div class="login-card shadow">
+    <div class="login-card">
         <h4 class="fw-bold mb-4" style="color: var(--primary)">Control Rutina AE</h4>
         <div class="text-start mb-3">
             <label class="small fw-bold">Usuario:</label>
@@ -113,7 +91,7 @@
             <input type="password" id="pass-maestro" class="form-control" placeholder="••••••••">
         </div>
         <button class="btn btn-primary w-100 fw-bold py-2 shadow" onclick="manejarLogin()">INICIAR</button>
-        <p class="small text-muted mt-3">Cuenta: <b>areaexterna.dohm@gmail.com</b></p>
+        <p class="small text-muted mt-3">Cuenta: areaexterna.dohm@gmail.com</p>
     </div>
 </div>
 
@@ -130,40 +108,18 @@
 
     <div class="container-fluid py-2" id="main-content">
         <div class="row g-2 mb-2">
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title">Semanal</div>
-                    <div class="stat-row"><b>Total</b><span id="ps-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span>A: Pisos/Recol.</span><span id="ps-a">0%</span></div>
-                    <div class="stat-row"><span>B: Vidrios/Par.</span><span id="ps-b">0%</span></div>
-                    <div class="stat-row"><span>C: Bolseo/Segr.</span><span id="ps-c">0%</span></div>
-                    <div class="stat-row"><span>D: Hidro/Barr.</span><span id="ps-d">0%</span></div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title">Mensual (30d)</div>
-                    <div class="stat-row"><b>Total</b><span id="pm-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span>A: Pisos/Recol.</span><span id="pm-a">0%</span></div>
-                    <div class="stat-row"><span>B: Vidrios/Par.</span><span id="pm-b">0%</span></div>
-                    <div class="stat-row"><span>C: Bolseo/Segr.</span><span id="pm-c">0%</span></div>
-                    <div class="stat-row"><span>D: Hidro/Barr.</span><span id="pm-d">0%</span></div>
-                </div>
-            </div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Semanal</div><div class="stat-row"><b>Total</b><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A: Pisos</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B: Vidrios</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C: Bolseo</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D: Hidro</span><span id="ps-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title">Mensual (30d)</div><div class="stat-row"><b>Total</b><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A: Pisos</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B: Vidrios</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C: Bolseo</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D: Hidro</span><span id="pm-d">0%</span></div></div></div>
         </div>
 
         <div class="row g-2 mb-2 no-print align-items-center">
-            <div class="col-4"><select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()">
-                <option value="Tello Victoria">Victoria</option>
-                <option value="Torres Ramón">Ramón</option>
-                <option value="Todos">👥 Todos</option>
-            </select></div>
+            <div class="col-4"><select id="view-user" class="form-select form-select-sm" onchange="renderMatriz()"><option value="Tello Victoria">Victoria</option><option value="Torres Ramón">Ramón</option><option value="Todos">👥 Todos</option></select></div>
             <div class="col-4"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
-            <div class="col-4"><button class="btn btn-sm w-100 btn-dashboard rounded shadow-sm" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
+            <div class="col-4"><button class="btn btn-sm w-100 btn-primary" style="background-color:#4285F4; border:none; font-size:0.6rem;" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-sm text-center" id="main-table">
+            <table class="table table-sm align-middle text-center" id="main-table">
                 <thead id="matriz-head"></thead>
                 <tbody id="matriz-body"></tbody>
             </table>
@@ -181,8 +137,7 @@
 
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwiHYvD7VUlPJNbLQ-ugefF3kvqpyaox5R6E-yWbxH0qNqt9GA_KBjcatSZW8GnDNuI/exec';
-    
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzD4fRe08h2a8yNqcHwXY-qxEmiRmlezpGKfylApq7skJI2qoj4CvhTai-VZYQq5UNsqQ/exec';
     const sectores = ["ALDE", "ALDE LAV", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "LAFI", "LC1C", "LC1F", "LC2C", "LC2F", "MAES CH", "PERIM", "PREMIUM", "PUSI", "RECI", "RECU", "SETU", "SIAC", "SIDER", "TACE", "TAEL", "TAUT"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
@@ -259,28 +214,27 @@
         const startDateStr = document.getElementById('data-date').value;
         const startDate = new Date(startDateStr + "T00:00:00");
         const viewSup = document.getElementById('view-user').value;
-        const today = new Date(); today.setHours(0,0,0,0);
-        const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+        
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const todayStr = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
         
         const isReadonly = (viewSup === "Todos" || (activeUser !== "Administrador" && activeUser !== viewSup));
-        body.className = isReadonly ? 'readonly-mode' : '';
 
-        let hContent = `<tr><th class="sector-name">Sector</th><th class="summary-col">V. Mes</th><th class="op-mes-col">O. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">O. Sem</th>`;
-        for(let i=0; i<7; i++) {
+        head.innerHTML = `<tr><th class="sector-name">Sector</th><th class="summary-col">V. Mes</th><th class="op-mes-col">O. Mes</th><th class="summary-col">V. Sem</th><th class="op-col">O. Sem</th>${[0,1,2,3,4,5,6].map(i => {
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
             let ds = dt.toISOString().split('T')[0];
-            let isToday = (ds === todayStr);
+            let isT = (ds === todayStr);
             let hasC = db['comment_'+ds+'_'+viewSup] ? 'has-content' : '';
             let btn = (viewSup === "Todos") ? "" : `<br><button class="btn-date-comment ${hasC}" onclick="openCommentModal('${ds}')">💬</button>`;
-            hContent += `<th class="${isToday ? 'today-col' : ''}">${diasNom[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}${btn}</th>`;
-        }
-        head.innerHTML = hContent + `</tr>`;
+            return `<th class="${isT ? 'today-col' : ''}">${diasNom[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}${btn}</th>`;
+        }).join('')}</tr>`;
 
         body.innerHTML = '';
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
             let sups = (viewSup === "Todos") ? ["Tello Victoria", "Torres Ramón"] : [viewSup];
             
+            // Lógica 30 días
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let dsM = dM.toISOString().split('T')[0];
@@ -295,11 +249,14 @@
                 });
                 sumOpM += combM.op; if(combM.act) vM++; okM += combM.ok;
             }
+
+            // Lógica 7 días
             for(let i=0; i<7; i++) {
                 let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
                 let ds = dt.toISOString().split('T')[0];
-                let isToday = (ds === todayStr);
+                let isT = (ds === todayStr);
                 let combW = { op: 0, act: false, tasks: {A:null,B:null,C:null,D:null} };
+                
                 sups.forEach(s => {
                     let k = `${sec}_${ds}_${s}`;
                     if(db[k]){
@@ -311,24 +268,23 @@
                         });
                     }
                 });
+
                 sumOpW += combW.op; if(combW.act) vW++; ['A','B','C','D'].forEach(t => { if(combW.tasks[t]===true) okW++; });
                 
-                const bloqueado = (activeUser !== "Administrador") && (isReadonly || dt < today);
+                // BLOQUEO ESTRICTO: Si no es admin y (es día distinto de hoy O no es su perfil)
+                const bloqueado = (activeUser !== "Administrador") && (isReadonly || !isT);
                 let kF = `${sec}_${ds}_${sups[0]}`;
 
-                dayCells += `<td class="${isToday ? 'today-col' : ''}">
+                dayCells += `<td class="${isT ? 'today-col' : ''}">
                     <div class="day-cell-container ${bloqueado ? 'day-locked' : ''}">
                         <div class="op-box" onclick="toggleOp('${kF}')">${combW_op(sec, ds, sups)}</div>
-                        <div class="task-grid">
-                            ${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${combW.tasks[t]===true?'task-ok':combW.tasks[t]===false?'task-fail':''}" onclick="toggleTask('${kF}','${t}')">${t}</div>`).join('')}
-                        </div>
-                    </div>
-                </td>`;
+                        <div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${combW.tasks[t]===true?'task-ok':combW.tasks[t]===false?'task-fail':''}" onclick="toggleTask('${kF}','${t}')">${t}</div>`).join('')}</div>
+                    </div></td>`;
             }
             function combW_op(s, d, su) { let o=0; su.forEach(u=>{ let k=`${s}_${d}_${u}`; if(db[k]) o+=parseInt(db[k].op)||0; }); return o; }
 
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-mes-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
+            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
@@ -337,17 +293,23 @@
         if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
         let current = parseInt(db[id].op) || 0;
         if (current < 4) db[id].op = current + 1;
-        else { let input = prompt("Operarios (máx 2 dígitos):", current); if (input !== null) { let n = parseInt(input); if(!isNaN(n) && n < 100) db[id].op = n; } }
+        else { let input = prompt("Operarios:", current); if (input !== null) db[id].op = parseInt(input) || 0; }
         save(id); 
     }
     function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
-    
     function openCommentModal(d) {
         const viewSup = document.getElementById('view-user').value;
         const dObj = new Date(d + "T00:00:00"); const today = new Date(); today.setHours(0,0,0,0);
-        if(activeUser !== "Administrador" && (dObj < today || activeUser !== viewSup)) { alert("Solo lectura"); return; }
+        const dsToday = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+        
         document.getElementById('modal-date-display').innerText = d;
         document.getElementById('daily-comment-text').value = db['comment_'+d+'_'+viewSup] || "";
+        
+        // Bloqueo de guardar nota si no es hoy y no es admin
+        const canSave = (activeUser === "Administrador" || (d === dsToday && activeUser === viewSup));
+        document.getElementById('save-comment-btn').style.display = canSave ? 'block' : 'none';
+        document.getElementById('daily-comment-text').readOnly = !canSave;
+
         new bootstrap.Modal(document.getElementById('commentModal')).show();
     }
     function saveDailyComment() {
@@ -356,7 +318,6 @@
         save('comment_sync');
         bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
     }
-
     function updateStats(startDate) {
         const viewSup = document.getElementById('view-user').value;
         let s = { ok:0, a:0, b:0, c:0, d:0 }, m = { ok:0, a:0, b:0, c:0, d:0 };
@@ -380,18 +341,16 @@
         const f = (id, ok, total) => {
             const pct = Math.round((ok/total)*100) || 0;
             const el = document.getElementById(id); el.innerText = pct + "%";
-            el.className = pct < 60 ? 'percent-val pct-low' : 'percent-val pct-high';
+            el.className = pct < 60 ? 'percent-val pct-low' : 'pct-high';
         };
-        const totalS = sectores.length * 28, totalM = sectores.length * 120;
-        const bS = sectores.length * 7, bM = sectores.length * 30;
-        f('ps-total', s.ok, totalS); f('pm-total', m.ok, totalM);
+        const tS = sectores.length * 28, tM = sectores.length * 120;
+        f('ps-total', s.ok, tS); f('pm-total', m.ok, tM);
         ['a','b','c','d'].forEach(t => { 
-            let pS = Math.round((s[t.toLowerCase()]/bS)*100)||0, pM = Math.round((m[t.toLowerCase()]/bM)*100)||0;
-            let elS = document.getElementById('ps-'+t); elS.innerText = pS+"%"; elS.className = pS < 60 ? 'pct-low' : 'pct-high';
-            let elM = document.getElementById('pm-'+t); elM.innerText = pM+"%"; elM.className = pM < 60 ? 'pct-low' : 'pct-high';
+            let pS = Math.round((s[t]/(sectores.length*7))*100)||0, pM = Math.round((m[t]/(sectores.length*30))*100)||0;
+            document.getElementById('ps-'+t).innerText = pS+"%"; document.getElementById('ps-'+t).className = pS < 60 ? 'pct-low' : 'pct-high';
+            document.getElementById('pm-'+t).innerText = pM+"%"; document.getElementById('pm-'+t).className = pM < 60 ? 'pct-low' : 'pct-high';
         });
     }
-
     function mostrarHistorial() {
         document.getElementById('main-content').style.display = 'none';
         document.getElementById('historial-section').style.display = 'block';
