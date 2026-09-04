@@ -28,9 +28,9 @@
 
         /* Stats */
         .stats-card { background: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; border-top: 4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; border-bottom: 2px solid #eee; padding-bottom: 4px; text-align: center; }
+        .stats-title { font-size: 0.80rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; text-align: center; }
         .percent-val { font-size: 1.1rem; font-weight: bold; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f2f2f2; padding: 4px 5px; font-size: 0.72rem; }
+        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 2px 5px; }
 
         /* Matriz */
         .table-responsive { background: white; border-radius: 10px; padding: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -41,7 +41,7 @@
         .summary-col { background-color: #f1f8ff !important; font-weight: bold; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
         .op-col { background-color: #fff3e0 !important; color: #e67e22; font-size: 0.6rem; width: 35px; border: 1px solid #ddd !important; }
 
-        /* Celdas Interactivas */
+        /* Tareas */
         .day-cell-container { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 3px 0; }
         .op-box { font-size: 0.62rem; font-weight: bold; color: #e67e22; cursor: pointer; border: 1px solid #e67e22; padding: 0 4px; border-radius: 3px; background: #fff; }
         .task-grid { display: grid; grid-template-columns: 1fr 1fr; width: 42px; height: 42px; border: 1.5px solid var(--primary); border-radius: 3px; overflow: hidden; background: #fff; }
@@ -51,33 +51,28 @@
         
         .day-locked { opacity: 0.5; pointer-events: none; background-color: #f2f2f2 !important; position: relative; }
         .day-locked::after { content: "🔒"; position: absolute; top: 0; right: 0; font-size: 7px; }
-        .readonly-mode { pointer-events: none !important; opacity: 0.8; }
+        .readonly-mode { pointer-events: none; opacity: 0.7; filter: grayscale(0.3); }
 
         .btn-google-drive { background: white !important; border: 2px solid #ddd; border-radius: 5px; font-weight: 700; font-size: 0.6rem; padding: 4px 8px; display: flex; align-items: center; gap: 5px; }
-        .btn-dashboard { background-color: var(--looker-blue) !important; color: white !important; font-weight: 800; font-size: 0.65rem; height: 31px; border: none; }
-        #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
-        .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
-        
         .btn-date-comment { display: inline-block; padding: 1px 3px; font-size: 10px; background: var(--warning); border: 1px solid #d4ac0d; border-radius: 3px; cursor: pointer; margin-top: 2px; color: #000; }
         .btn-date-comment.has-content { background: var(--ok); color: white; }
-        
         .legend-card { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 10px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        #sync-status-icon { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ee5253; margin-right: 5px; }
+        .sync-active { background: #10ac84 !important; box-shadow: 0 0 5px #10ac84; }
     </style>
 </head>
 <body>
 
-<!-- MODAL NOTAS -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header"><h6 class="modal-title fw-bold">Notas del día: <span id="modal-date-display"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body"><textarea id="daily-comment-text" class="form-control" rows="4" placeholder="Escriba aquí..."></textarea></div>
+            <div class="modal-body"><textarea id="daily-comment-text" class="form-control" rows="4"></textarea></div>
             <div class="modal-footer"><button type="button" class="btn btn-primary w-100" onclick="saveDailyComment()">GUARDAR</button></div>
         </div>
     </div>
 </div>
 
-<!-- LOGIN -->
 <div id="login-screen">
     <div class="login-card shadow">
         <h4 class="fw-bold mb-4" style="color: var(--primary)">Control Rutina AE</h4>
@@ -98,10 +93,8 @@
     </div>
 </div>
 
-<!-- APP -->
 <div class="main-app" id="app">
     <div class="app-title-header no-print">Control de cumplimiento de rutina de limpieza AE</div>
-    
     <nav class="navbar navbar-dark bg-dark px-2 shadow-sm no-print">
         <span class="text-white small">Sesión: <b id="active-user-display"></b></span>
         <div class="d-flex align-items-center gap-2">
@@ -113,26 +106,8 @@
 
     <div class="container-fluid py-2" id="main-content">
         <div class="row g-2 mb-2">
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title text-center">Semanal</div>
-                    <div class="stat-row"><span class="fw-bold">Total</span><span id="ps-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span>A: Pisos/Recol.</span><span id="ps-a" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>B: Vidrios/Par.</span><span id="ps-b" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>C: Bolseo/Segr.</span><span id="ps-c" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>D: Hidro/Barr.</span><span id="ps-d" class="stat-num">0%</span></div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="stats-card">
-                    <div class="stats-title text-center">Mensual (30d)</div>
-                    <div class="stat-row"><span class="fw-bold">Total</span><span id="pm-total" class="percent-val">0%</span></div>
-                    <div class="stat-row"><span>A: Pisos/Recol.</span><span id="pm-a" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>B: Vidrios/Par.</span><span id="pm-b" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>C: Bolseo/Segr.</span><span id="pm-c" class="stat-num">0%</span></div>
-                    <div class="stat-row"><span>D: Hidro/Barr.</span><span id="pm-d" class="stat-num">0%</span></div>
-                </div>
-            </div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Semanal</div><div class="stat-row"><span>Total</span><span id="ps-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="ps-a">0%</span></div><div class="stat-row"><span>B</span><span id="ps-b">0%</span></div><div class="stat-row"><span>C</span><span id="ps-c">0%</span></div><div class="stat-row"><span>D</span><span id="ps-d">0%</span></div></div></div>
+            <div class="col-6"><div class="stats-card"><div class="stats-title text-center">Mensual (30d)</div><div class="stat-row"><span>Total</span><span id="pm-total" class="percent-val">0%</span></div><div class="stat-row"><span>A</span><span id="pm-a">0%</span></div><div class="stat-row"><span>B</span><span id="pm-b">0%</span></div><div class="stat-row"><span>C</span><span id="pm-c">0%</span></div><div class="stat-row"><span>D</span><span id="pm-d">0%</span></div></div></div>
         </div>
 
         <div class="row g-2 mb-2 no-print align-items-center">
@@ -142,7 +117,7 @@
                 <option value="Todos">👥 Todos</option>
             </select></div>
             <div class="col-4"><input type="date" id="data-date" class="form-control form-control-sm" onchange="renderMatriz()"></div>
-            <div class="col-4"><button class="btn btn-sm w-100 btn-dashboard rounded shadow-sm" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
+            <div class="col-4"><button class="btn btn-sm w-100 btn-info text-white fw-bold rounded shadow-sm" style="background-color: var(--looker-blue) !important; border:none; font-size:0.6rem;" onclick="window.open('https://lookerstudio.google.com/reporting/TU_ID_AQUI')">📊 DASHBOARD</button></div>
         </div>
 
         <div class="table-responsive">
@@ -153,10 +128,9 @@
         </div>
     </div>
 
-    <!-- Historial -->
     <div class="container-fluid py-2" id="historial-section">
-        <div class="d-flex justify-content-between align-items-center mb-2"><h6>Historial Completo</h6><button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button></div>
-        <div id="historial-body-list" class="list-group shadow-sm"></div>
+        <div class="d-flex justify-content-between align-items-center mb-2"><h6>Historial</h6><button class="btn btn-secondary btn-sm" onclick="cerrarHistorial()">Volver</button></div>
+        <div id="historial-body-list" class="list-group"></div>
     </div>
 </div>
 
@@ -166,7 +140,9 @@
 <script>
     const CLIENT_ID = '92935134812-0iaa69fcipv69hqu5egfc20cdvblous2.apps.googleusercontent.com';
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwiHYvD7VUlPJNbLQ-ugefF3kvqpyaox5R6E-yWbxH0qNqt9GA_KBjcatSZW8GnDNuI/exec';
-    const sectores = ["ALDE", "ALDE LAV", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "LAFI", "MAES CH", "PERIM", "PUSI", "RECI", "RECU", "SETU", "SIAC", "SIDER", "TACE", "TAEL"];
+    
+    // LISTA ACTUALIZADA ALFABÉTICAMENTE
+    const sectores = ["ALDE", "ALDE LAV", "ALFA", "ALMA", "BOMB", "COFI", "FACU", "LABO", "LAEL", "LAFI", "MAES CH", "PERIM", "PREMIUM", "PUSI", "RECI", "RECU", "SETU", "SIAC", "SIDER", "TACE", "TAEL", "TAUT"];
     const diasNom = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     
     let db = JSON.parse(localStorage.getItem('db_ae_vFinalPlanilla')) || {};
@@ -190,7 +166,10 @@
         document.getElementById('view-user').value = (activeUser === "Administrador") ? "Todos" : activeUser;
         
         const hoy = new Date();
-        document.getElementById('data-date').value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        document.getElementById('data-date').value = `${yyyy}-${mm}-${dd}`;
         renderMatriz();
     }
 
@@ -228,7 +207,16 @@
         }
         if (WEB_APP_URL && key && key.includes('_20')) {
             const p = key.split('_');
-            const dataToSheet = { fecha: p[1], sector: p[0], supervisor: p[2], A: db[key].A?'OK':'F', B: db[key].B?'OK':'F', C: db[key].C?'OK':'F', D: db[key].D?'OK':'F', op: db[key].op };
+            const dataToSheet = {
+                fecha: p[1], sector: p[0], supervisor: p[2],
+                A: db[key].A?'OK':'F', B: db[key].B?'OK':'F', C: db[key].C?'OK':'F', D: db[key].D?'OK':'F',
+                op: db[key].op,
+                vSem: document.getElementById('vsem_'+p[0].replace(/\s/g,'_')).innerText,
+                vMes: document.getElementById('vmes_'+p[0].replace(/\s/g,'_')).innerText,
+                opSem: document.getElementById('opsem_'+p[0].replace(/\s/g,'_')).innerText,
+                opMes: document.getElementById('opmes_'+p[0].replace(/\s/g,'_')).innerText,
+                novedad: db['comment_'+p[1]+'_'+p[2]] || ""
+            };
             fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataToSheet) });
         }
     }
@@ -238,8 +226,6 @@
         const startDate = new Date(document.getElementById('data-date').value + "T00:00:00");
         const viewSup = document.getElementById('view-user').value;
         const today = new Date(); today.setHours(0,0,0,0);
-        
-        // El modo "Todos" siempre es readonly a menos que seas Admin
         const isReadonly = (viewSup === "Todos" || (activeUser !== "Administrador" && activeUser !== viewSup));
         body.className = isReadonly ? 'readonly-mode' : '';
 
@@ -247,63 +233,73 @@
             let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
             let ds = dt.toISOString().split('T')[0];
             let hasC = db['comment_'+ds+'_'+viewSup] ? 'has-content' : '';
-            let commentBtn = viewSup === "Todos" ? "" : `<br><button class="btn-date-comment ${hasC}" onclick="openCommentModal('${ds}')">💬</button>`;
-            return `<th>${diasNom[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}${commentBtn}</th>`;
+            let btn = (viewSup === "Todos") ? "" : `<br><button class="btn-date-comment ${hasC}" onclick="openCommentModal('${ds}')">💬</button>`;
+            return `<th>${diasNom[dt.getDay()]}<br>${dt.getDate()}/${dt.getMonth()+1}${btn}</th>`;
         }).join('')}</tr>`;
 
         body.innerHTML = '';
         sectores.forEach(sec => {
             let sumOpW = 0, vW = 0, sumOpM = 0, vM = 0, okW = 0, okM = 0, dayCells = "";
             let sups = (viewSup === "Todos") ? ["Tello Victoria", "Torres Ramón"] : [viewSup];
-
-            for(let i=0; i<7; i++) {
-                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
-                let ds = dt.toISOString().split('T')[0];
-                let combinedVal = { op: 0, A: null, B: null, C: null, D: null };
-                
-                sups.forEach(s => {
-                    let k = `${sec}_${ds}_${s}`;
-                    let val = db[k];
-                    if(val) {
-                        combinedVal.op += (parseInt(val.op) || 0);
-                        ['A','B','C','D'].forEach(t => { if(val[t] === true) combinedVal[t] = true; else if(val[t] === false && combinedVal[t] !== true) combinedVal[t] = false; });
-                    }
-                });
-
-                sumOpW += combinedVal.op;
-                if(combinedVal.op > 0 || ['A','B','C','D'].some(t => combinedVal[t] !== null)) vW++;
-                ['A','B','C','D'].forEach(t => { if(combinedVal[t]===true) okW++; });
-
-                const bloqueado = (activeUser !== "Administrador") && (isReadonly || dt < today);
-                let kFirst = `${sec}_${ds}_${sups[0]}`;
-                dayCells += `<td><div class="day-cell-container ${bloqueado ? 'day-locked' : ''}"><span class="label-mini">Op:</span><div class="op-box" onclick="toggleOp('${kFirst}')">${combinedVal.op}</div><span class="label-mini">Tareas</span><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${combinedVal[t]===true?'task-ok':combinedVal[t]===false?'task-fail':''}" onclick="toggleTask('${kFirst}','${t}')">${t}</div>`).join('')}</div></div></td>`;
-            }
-
-            // Calculo V.Mes y Op.Mes (30 días)
+            let secId = sec.replace(/\s/g, '_');
+            
+            // 30 días
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 let dsM = dM.toISOString().split('T')[0];
-                let mCombined = { op: 0, hasActivity: false, okCount: 0 };
+                let combinedM = { op: 0, act: false, ok: 0 };
                 sups.forEach(s => {
                     let k = `${sec}_${dsM}_${s}`;
-                    let val = db[k];
-                    if(val) {
-                        mCombined.op += (parseInt(val.op) || 0);
-                        if(val.op > 0 || ['A','B','C','D'].some(t => val[t] !== null)) mCombined.hasActivity = true;
-                        ['A','B','C','D'].forEach(t => { if(val[t]===true) mCombined.okCount++; });
+                    if(db[k]){
+                        combinedM.op += (parseInt(db[k].op) || 0);
+                        if(db[k].op > 0 || db[k].A!==null) combinedM.act = true;
+                        ['A','B','C','D'].forEach(t => { if(db[k][t]===true) combinedM.ok++; });
                     }
                 });
-                sumOpM += mCombined.op;
-                if(mCombined.hasActivity) vM++;
-                okM += mCombined.okCount;
+                sumOpM += combinedM.op;
+                if(combinedM.act) vM++;
+                okM += combinedM.ok;
             }
+            // 7 días
+            for(let i=0; i<7; i++) {
+                let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
+                let ds = dt.toISOString().split('T')[0];
+                let combinedW = { op: 0, act: false, tasks: {A:null,B:null,C:null,D:null} };
+                
+                sups.forEach(s => {
+                    let k = `${sec}_${ds}_${s}`;
+                    if(db[k]){
+                        combinedW.op += (parseInt(db[k].op) || 0);
+                        if(db[k].op > 0 || db[k].A!==null) combinedW.act = true;
+                        ['A','B','C','D'].forEach(t => {
+                            if(db[k][t]===true) combinedW.tasks[t] = true;
+                            else if(db[k][t]===false && combinedW.tasks[t]!==true) combinedW.tasks[t] = false;
+                        });
+                    }
+                });
+                
+                sumOpW += combinedW.op;
+                if(combinedW.act) vW++;
+                ['A','B','C','D'].forEach(t => { if(combinedW.tasks[t]===true) okW++; });
 
+                const bloqueado = (activeUser !== "Administrador") && (isReadonly || dt < today);
+                let kFirst = `${sec}_${ds}_${sups[0]}`;
+                dayCells += `<td><div class="day-cell-container ${bloqueado ? 'day-locked' : ''}"><span class="label-mini">Op:</span><div class="op-box" onclick="toggleOp('${kFirst}')">${combinedW.op}</div><span class="label-mini">Tareas</span><div class="task-grid">${['A', 'B', 'C', 'D'].map(t => `<div class="task-cell ${combinedW.tasks[t]===true?'task-ok':combinedW.tasks[t]===false?'task-fail':''}" onclick="toggleTask('${kFirst}','${t}')">${t}</div>`).join('')}</div></div></td>`;
+            }
             let pS = Math.round((okW/28)*100), pM = Math.round((okM/120)*100);
-            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">S: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">M: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col">${vM}</td><td class="op-mes-col">${sumOpM}</td><td class="summary-col">${vW}</td><td class="op-col">${sumOpW}</td>${dayCells}</tr>`;
+            body.innerHTML += `<tr><td class="sector-name">${sec}<span class="sector-perc-stack">Sem: <span class="${pS<60?'pct-low':'pct-high'}">${pS}%</span></span><span class="sector-perc-stack">Mes: <span class="${pM<60?'pct-low':'pct-high'}">${pM}%</span></span></td><td class="summary-col" id="vmes_${secId}">${vM}</td><td class="op-col" id="opmes_${secId}">${sumOpM}</td><td class="summary-col" id="vsem_${secId}">${vW}</td><td class="op-col" id="opsem_${secId}">${sumOpW}</td>${dayCells}</tr>`;
         });
         updateStats(startDate);
     }
 
+    function toggleOp(id) { 
+        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
+        let current = parseInt(db[id].op) || 0;
+        if (current < 4) db[id].op = current + 1;
+        else { let input = prompt("Operarios:", current); if (input !== null) db[id].op = parseInt(input) || 0; }
+        save(id); 
+    }
+    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
     function openCommentModal(d) {
         const viewSup = document.getElementById('view-user').value;
         const dObj = new Date(d + "T00:00:00"); const today = new Date(); today.setHours(0,0,0,0);
@@ -318,51 +314,33 @@
         save('comment_sync');
         bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
     }
-    function toggleTask(id, t) { if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; db[id][t] = (db[id][t] === null) ? true : (db[id][t] === true ? false : null); save(id); }
-    function toggleOp(id) { 
-        if(!db[id]) db[id] = { op: 0, A: null, B: null, C: null, D: null }; 
-        let curr = parseInt(db[id].op) || 0;
-        if(curr < 4) db[id].op = curr + 1;
-        else { let val = prompt("Operarios:", curr); if(val !== null) db[id].op = parseInt(val) || 0; }
-        save(id); 
-    }
-
     function updateStats(startDate) {
         const viewSup = document.getElementById('view-user').value;
         let s = { ok:0 }, m = { ok:0 };
         const sups = (viewSup === "Todos") ? ["Tello Victoria", "Torres Ramón"] : [viewSup];
-        const totalS = sectores.length * 28, totalM = sectores.length * 120;
-        
         sectores.forEach(sec => {
             for(let i=0; i<7; i++){
                 let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
                 let ds = dt.toISOString().split('T')[0];
-                let dayOk = { A: false, B: false, C: false, D: false };
-                sups.forEach(sup => {
-                    let k = `${sec}_${ds}_${sup}`;
-                    if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) dayOk[t] = true; });
-                });
+                let dayOk = { A:false, B:false, C:false, D:false };
+                sups.forEach(sup => { let k = `${sec}_${ds}_${sup}`; if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) dayOk[t]=true; }); });
                 ['A','B','C','D'].forEach(t => { if(dayOk[t]) s.ok++; });
             }
             for(let j=0; j<30; j++){
                 let dt = new Date(startDate); dt.setDate(startDate.getDate() + j);
                 let ds = dt.toISOString().split('T')[0];
-                let monthOk = { A: false, B: false, C: false, D: false };
-                sups.forEach(sup => {
-                    let k = `${sec}_${ds}_${sup}`;
-                    if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) monthOk[t] = true; });
-                });
-                ['A','B','C','D'].forEach(t => { if(monthOk[t]) m.ok++; });
+                let monOk = { A:false, B:false, C:false, D:false };
+                sups.forEach(sup => { let k = `${sec}_${ds}_${sup}`; if(db[k]) ['A','B','C','D'].forEach(t => { if(db[k][t]===true) monOk[t]=true; }); });
+                ['A','B','C','D'].forEach(t => { if(monOk[t]) m.ok++; });
             }
         });
         const f = (id, ok, total) => {
             const pct = Math.round((ok/total)*100) || 0;
             const el = document.getElementById(id); el.innerText = pct + "%";
-            el.className = pct < 60 ? 'percent-val pct-low' : 'percent-val pct-high';
+            el.className = pct < 60 ? 'percent-val pct-low' : 'pct-high';
         };
-        f('ps-total', s.ok, totalS); f('pm-total', m.ok, totalM);
+        f('ps-total', s.ok, sectores.length * 28); f('pm-total', m.ok, sectores.length * 120);
     }
-
     function mostrarHistorial() {
         document.getElementById('main-content').style.display = 'none';
         document.getElementById('historial-section').style.display = 'block';
