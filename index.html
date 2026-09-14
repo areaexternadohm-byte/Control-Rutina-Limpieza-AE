@@ -130,18 +130,26 @@
         }
         .btn-celeste:hover { background-color: var(--celeste-hover); color: white; transform: translateY(-1px); }
 
-        /* Estructura de Tabla Matriz */
+        /* ========================================================= */
+        /* Estructura de Tabla Matriz con PANELES FIJOS (Sticky)      */
+        /* ========================================================= */
         .table-responsive { 
             background: white; 
             border-radius: 14px; 
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
             overflow: auto; 
+            max-height: 70vh; /* Permite scroll vertical interno para fijar thead */
             margin-bottom: 20px; 
             border: 1px solid var(--border-color);
         }
 
-        table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        table { 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            width: 100%; 
+        }
 
+        /* 1. Encabezado superior fijo (Vertical Scroll) */
         thead th { 
             position: sticky; 
             top: 0; 
@@ -154,12 +162,14 @@
             vertical-align: middle;
         }
 
+        /* 2. Columna izquierda fija (Horizontal Scroll) */
         .sector-name { 
             position: sticky; 
             left: 0; 
-            background: #fff !important; 
+            background: #ffffff !important; 
             z-index: 21; 
             border-right: 2px solid var(--border-color) !important; 
+            border-bottom: 1px solid var(--border-color);
             font-weight: 700; 
             width: 85px !important; 
             min-width: 85px !important; 
@@ -167,7 +177,13 @@
             word-wrap: break-word; 
             text-align: left; 
             padding: 6px !important; 
-            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.03);
+        }
+
+        /* 3. Esquina Superior Izquierda (Intersección Fila/Columna) */
+        thead th.sector-name {
+            z-index: 30 !important; /* Capa más alta para que nada se ponga encima */
+            background-color: #f8fafc !important;
         }
 
         .sector-perc-stack { 
@@ -610,7 +626,7 @@
             let tasksW = {A:0,B:0,C:0,D:0}, totalTasksW = {A:0,B:0,C:0,D:0};
             let tasksM = {A:0,B:0,C:0,D:0}, totalTasksM = {A:0,B:0,C:0,D:0};
             
-            // Calculo Mensual (30 dias desde fecha de inicio)
+            // Calculo Mensual
             for(let j=0; j<30; j++){
                 let dM = new Date(startDate); dM.setDate(startDate.getDate() + j);
                 sups.forEach(s => {
@@ -628,14 +644,13 @@
                 });
             }
 
-            // Calculo Semanal (7 dias)
+            // Calculo Semanal
             for(let i=0; i<7; i++) {
                 let dt = new Date(startDate); dt.setDate(startDate.getDate() + i);
                 let ds = getLocalISO(dt);
                 let isToday = (ds === todayStr);
                 let isYesterday = (ds === yesterdayStr);
                 
-                // Bloqueo: Si no es Admin y la fecha no es hoy ni ayer
                 let isLocked = (activeUser !== "Administrador") && (!isToday && !isYesterday);
 
                 let combW = { op: 0, hasData: false, tasks: {A:null,B:null,C:null,D:null}, note: "" };
@@ -658,7 +673,6 @@
                 sumOpW += combW.op;
                 if(combW.op > 0 || combW.tasks.A!==null || combW.tasks.B!==null || combW.tasks.C!==null || combW.tasks.D!==null) vW++;
 
-                // Generar Renderizado Celda
                 let cellClass = isToday ? 'today-col' : '';
                 let lockAttr = isLocked || isReadonlyView ? 'day-locked' : '';
 
@@ -689,7 +703,6 @@
                 ? Math.round((okM / (totalTasksM.A+totalTasksM.B+totalTasksM.C+totalTasksM.D)) * 100) : 0;
 
             let pctWClass = pctW >= 80 ? 'pct-high' : (pctW > 0 ? 'pct-low' : '');
-            let pctMClass = pctM >= 80 ? 'pct-high' : (pctM > 0 ? 'pct-low' : '');
 
             let rowHtml = `<tr>
                 <td class="sector-name">
@@ -706,7 +719,6 @@
             body.innerHTML += rowHtml;
         });
 
-        // Actualizar Tarjetas de Estadísticas Globales
         updateStatCards(globalOkW, globalTotalW, globalOkM, globalTotalM);
     }
 
